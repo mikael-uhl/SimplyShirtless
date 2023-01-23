@@ -1,0 +1,10 @@
+{
+  "Name": "NoShirt",
+  "Author": "JhonnieRandler & Brukob",
+  "Version": "0.0.1",
+  "Description": "Removes the farmer's shirt",
+  "UniqueID": "JhonnieMike.NoShirt",
+  "EntryDll": "NoShirt.dll",
+  "MinimumApiVersion": "3.18.1",
+  "UpdateKeys": []
+}
