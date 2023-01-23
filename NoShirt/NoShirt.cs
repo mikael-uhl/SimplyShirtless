@@ -17,9 +17,6 @@ namespace NoShirt
         private readonly Texture2D _sleevesTexture;
         private readonly Texture2D _originalColorsTexture;
 
-        private const int MinSkinValue = 0;
-        private static readonly int MaxSkinValue = _skinColorsTexture.Height - 1;
-
         public NoShirt(IModHelper helper, IManifest modManifest)
         {
             _helper = helper;
@@ -67,9 +64,11 @@ namespace NoShirt
         /// <returns>The valid skin color</returns>
         private int GetValidSkinColor(int skinColor)
         {
+        const int MinSkinValue = 0;
+        int maxSkinValue = _skinColorsTexture.Height - 1;
             if (skinColor < MinSkinValue)
-                return MaxSkinValue;
-            if (skinColor > MaxSkinValue)
+                return maxSkinValue;
+            if (skinColor > maxSkinValue)
                 return MinSkinValue;
             return skinColor;
         }
