@@ -17,6 +17,7 @@ A mod for Stardew Valley that removes the shirt from the player's character.
 - Add alternative torso texture option
 - Fix pixels that look out of place after going shirtless (consult \[CP\] NoShirt)
 - Add support for GMCM
+- Add sprite option for the Spa Sprites
 - <span style="color:gray"><font size="3">Female model? (to be discussed)</font></span>
 
 ## Compatibility
