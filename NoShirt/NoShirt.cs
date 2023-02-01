@@ -10,21 +10,21 @@ namespace NoShirt
     public class NoShirt
     {
         private readonly IModHelper _helper;
-        private static readonly Rectangle ShirtArea = new Rectangle(8, 416, 8, 32);
-        private static readonly Rectangle SleevesArea = new Rectangle(136, 416, 8, 29);
+        private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
+        private static readonly Rectangle SleevesArea = new(136, 416, 8, 29);
         
-        private static Texture2D _skinColorsTexture;
+        private readonly Texture2D _skinColorsTexture;
         private readonly Texture2D _sleevesTexture;
         private readonly Texture2D _originalColorsTexture;
 
-        public NoShirt(IModHelper helper, IManifest modManifest)
+        public NoShirt(IModHelper helper)
         {
             _helper = helper;
             _skinColorsTexture = _helper.ModContent.Load<Texture2D>("assets/skinColors.png");
             _sleevesTexture = _helper.ModContent.Load<Texture2D>("assets/sleeves.png");
-            _originalColorsTexture = _helper.ModContent.Load<Texture2D>("assets/originalColor.png");
-            _helper.Events.Content.AssetRequested += this.RemoveSleeve;
+            _originalColorsTexture = _helper.ModContent.Load<Texture2D>("assets/originalColors.png");
             _helper.Events.Content.AssetRequested += this.RemoveShirt;
+            _helper.Events.Content.AssetRequested += this.RemoveSleeve;
         }
 
         private bool IsAssetShirts(AssetRequestedEventArgs assetRequestEvent)
@@ -50,7 +50,6 @@ namespace NoShirt
             e.Edit(asset =>
             {
                 var editor = asset.AsImage();
-                
                 int currentSkinColor = GetValidSkinColor(Game1.MasterPlayer.skin.Value);
                 ReplaceSleeveColors(_sleevesTexture, _originalColorsTexture, _skinColorsTexture, currentSkinColor);
                 editor.PatchImage(_sleevesTexture, targetArea: SleevesArea);
@@ -64,13 +63,11 @@ namespace NoShirt
         /// <returns>The valid skin color</returns>
         private int GetValidSkinColor(int skinColor)
         {
-        const int MinSkinValue = 0;
-        int maxSkinValue = _skinColorsTexture.Height - 1;
-            if (skinColor < MinSkinValue)
+            const int minSkinValue = 0;
+            int maxSkinValue = _skinColorsTexture.Height - 1;
+            if (skinColor < minSkinValue)
                 return maxSkinValue;
-            if (skinColor > maxSkinValue)
-                return MinSkinValue;
-            return skinColor;
+            return skinColor > maxSkinValue ? minSkinValue : skinColor;
         }
         
         /// <summary>
@@ -82,9 +79,9 @@ namespace NoShirt
         /// <param name="skinValue">The index of the replacement colors in the skinColors texture</param>
         private void ReplaceSleeveColors(Texture2D sleeves, Texture2D originalColors, Texture2D skinColors, int skinValue)
         {
+            Color[] pixels = GetDataFromTexture(sleeves);
             Color[] originalData = GetDataFromTexture(originalColors);
             Color[] replacementColors = GetReplacementColors(skinColors, skinValue);
-            Color[] pixels = GetDataFromTexture(sleeves);
             ReplaceColors(pixels, originalData, replacementColors);
             sleeves.SetData(pixels);
         }
@@ -123,9 +120,9 @@ namespace NoShirt
         /// <param name="replacementColors">The colors to replace the original colors with</param>
         private void ReplaceColors(Color[] pixels, Color[] originalData, Color[] replacementColors)
         {
-            for (int i = 0; i < pixels.Length; i++)
+            for (var i = 0; i < pixels.Length; i++)
             {
-                for (int j = 0; j < originalData.Length; j++)
+                for (var j = 0; j < originalData.Length; j++)
                 {
                     if (pixels[i] == originalData[j])
                     {

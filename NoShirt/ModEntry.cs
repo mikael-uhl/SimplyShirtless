@@ -7,7 +7,7 @@ namespace NoShirt
     {
         public override void Entry(IModHelper helper)
         { 
-            var noShirt = new NoShirt(helper, this.ModManifest);
+            var noShirt = new NoShirt(helper);
         }
     }
 }
