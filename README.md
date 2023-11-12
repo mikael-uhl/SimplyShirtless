@@ -1,5 +1,5 @@
 # NoShirt
-A mod for Stardew Valley that removes the shirt from the player's character.
+A mod for Stardew Valley that allows the player to actually remove their character's shirt.
 
 ## Features
 - Removes the shirt from the player's character.
