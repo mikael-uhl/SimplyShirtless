@@ -7,7 +7,7 @@ namespace NoShirt
     {
         public override void Entry(IModHelper helper)
         { 
-            var noShirt = new NoShirt(helper);
+            var noShirt = new NoShirt(helper, Monitor);
         }
     }
 }

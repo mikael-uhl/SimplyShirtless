@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Menus;
 
 namespace NoShirt
 {
@@ -17,16 +21,49 @@ namespace NoShirt
         private readonly Texture2D _sleevesTexture;
         private readonly Texture2D _originalColorsTexture;
 
-        public NoShirt(IModHelper helper)
+        private List<Farmer> _farmersInLoadMenu = new List<Farmer>();
+        
+        private int _skinColor;
+        private readonly IMonitor _monitor;
+
+        public NoShirt(IModHelper helper, IMonitor monitor)
         {
+            _monitor = monitor;
             _helper = helper;
             _skinColorsTexture = _helper.ModContent.Load<Texture2D>("assets/skinColors.png");
             _sleevesTexture = _helper.ModContent.Load<Texture2D>("assets/sleeves.png");
             _originalColorsTexture = _helper.ModContent.Load<Texture2D>("assets/originalColors.png");
             _helper.Events.Content.AssetRequested += this.RemoveShirt;
             _helper.Events.Content.AssetRequested += this.RemoveSleeve;
+            _helper.Events.GameLoop.UpdateTicked += this.CheckSkinChange;
+            _helper.Events.GameLoop.SaveLoaded += this.OnSaveLoad;
+            _helper.Events.Display.MenuChanged += this.IsLoadMenuActive;
         }
+        
+        private void IsLoadMenuActive(object sender, MenuChangedEventArgs e)
+        {
+            if (!(e.NewMenu is LoadGameMenu)) return;
+            // Armazena a lista de fazendeiros renderizados no menu de carregar jogo
+            _farmersInLoadMenu = Game1.getAllFarmers().ToList();
+            foreach (Farmer farmer in _farmersInLoadMenu)
+            {
+                int skinColor = GetValidSkinColor(farmer.skin.Value);
+                
+                ReplaceSleeveColors(_sleevesTexture, _originalColorsTexture, _skinColorsTexture, skinColor);
 
+                _monitor.Log("Height: " + farmer.Sprite.SpriteHeight + "\n" + "Width: " + farmer.Sprite.SpriteWidth, LogLevel.Alert);
+            }
+        }
+        private bool IsColorMatch(Color colorA, Color colorB, int tolerance)
+        {
+            int r = colorA.R - colorB.R;
+            int g = colorA.G - colorB.G;
+            int b = colorA.B - colorB.B;
+            int a = colorA.A - colorB.A;
+
+            return (r * r + g * g + b * b + a * a) <= tolerance * tolerance;
+        }
+        
         private bool IsAssetShirts(AssetRequestedEventArgs assetRequestEvent)
         {
             return assetRequestEvent.NameWithoutLocale.IsEquivalentTo("Characters/Farmer/shirts");
@@ -50,7 +87,7 @@ namespace NoShirt
             e.Edit(asset =>
             {
                 var editor = asset.AsImage();
-                int currentSkinColor = GetValidSkinColor(Game1.MasterPlayer.skin.Value);
+                int currentSkinColor = GetValidSkinColor(Game1.player.skin.Value);
                 ReplaceSleeveColors(_sleevesTexture, _originalColorsTexture, _skinColorsTexture, currentSkinColor);
                 editor.PatchImage(_sleevesTexture, targetArea: SleevesArea);
             });
@@ -65,9 +102,7 @@ namespace NoShirt
         {
             const int minSkinValue = 0;
             int maxSkinValue = _skinColorsTexture.Height - 1;
-            if (skinColor < minSkinValue)
-                return maxSkinValue;
-            return skinColor > maxSkinValue ? minSkinValue : skinColor;
+            return skinColor < minSkinValue ? maxSkinValue : skinColor > maxSkinValue ? minSkinValue : skinColor;
         }
         
         /// <summary>
@@ -122,14 +157,23 @@ namespace NoShirt
         {
             for (var i = 0; i < pixels.Length; i++)
             {
-                for (var j = 0; j < originalData.Length; j++)
-                {
-                    if (pixels[i] == originalData[j])
-                    {
-                        pixels[i] = replacementColors[j];
-                    }
-                }
+                int index = Array.IndexOf(originalData, pixels[i]);
+                if (index != -1)
+                    pixels[i] = replacementColors[index % 3];
             }
+        }
+
+        private void OnSaveLoad(object sender, SaveLoadedEventArgs e)
+        {
+            _skinColor = GetValidSkinColor(Game1.player.skin.Value);
+            _helper.GameContent.InvalidateCache("Characters/Farmer/shirts");
+        }
+        
+        private void CheckSkinChange(object sender, UpdateTickedEventArgs e)
+        {
+            if (_skinColor == Game1.player.skin.Value) return;
+            _skinColor = Game1.player.skin.Value;
+            _helper.GameContent.InvalidateCache("Characters/Farmer/shirts");
         }
     }
 }
