@@ -1,3 +1,4 @@
+using NVorbis;
 using StardewModdingAPI;
 
 namespace NoShirt
@@ -7,7 +8,8 @@ namespace NoShirt
     {
         public override void Entry(IModHelper helper)
         { 
-            var noShirt = new NoShirt(helper, Monitor);
+            //var noShirt = new NoShirt(helper, Monitor);
+            var bareChest = new NewStrat(helper);
         }
     }
 }
