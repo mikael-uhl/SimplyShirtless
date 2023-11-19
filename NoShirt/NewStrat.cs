@@ -7,28 +7,39 @@ using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
+using StardewValley.Objects;
 
 namespace NoShirt
 {
     public class NewStrat
     {
         private readonly IModHelper _helper;
+        private readonly IMonitor _monitor;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
+        private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
         
+        private readonly Texture2D _blankRectangle;
         private readonly Texture2D _skinColorsTexture;
         private readonly Texture2D _chestTexture;
         private readonly Texture2D _originalColorsTexture;
         
         private int _skinColor;
 
-        public NewStrat(IModHelper helper)
+        public NewStrat(IModHelper helper, IMonitor monitor)
         {
             _helper = helper;
+            _monitor = monitor;
             _skinColorsTexture = _helper.ModContent.Load<Texture2D>("assets/skinColors.png");
             _originalColorsTexture = _helper.ModContent.Load<Texture2D>("assets/originalColors.png");
             _chestTexture = _helper.ModContent.Load<Texture2D>("assets/chest.png");
-            _helper.Events.Content.AssetRequested += this.ReplaceShirt;
+            _blankRectangle = _helper.ModContent.Load<Texture2D>("assets/blank.png");
+            _helper.Events.Content.AssetRequested += this.RemoveShirt;
+            _helper.Events.Content.AssetRequested += this.RemoveShoulder;
+            _helper.Events.Content.AssetRequested += this.ReplaceSleeves;
             _helper.Events.GameLoop.UpdateTicked += this.CheckSkinChange;
+            _helper.Events.GameLoop.SaveLoaded += this.OnSaveLoad;
             _helper.Events.GameLoop.SaveLoaded += this.OnSaveLoad;
         }
         
@@ -36,8 +47,44 @@ namespace NoShirt
         {
             return assetRequestEvent.NameWithoutLocale.IsEquivalentTo("Characters/Farmer/shirts");
         }
+        
+        //protected static bool _loadedData;
+        
+        // internal static bool LoadDataPrefix(Clothing __instance, bool initialize_color)
+        // {
+        //     try
+        //     {
+        //         FieldInfo loadedDataField = typeof(Clothing).GetField("_loadedData");
+        //         if (loadedDataField != null)
+        //         {
+        //             loadedDataField.SetValue(__instance, true);
+        //             return true;
+        //         }
+        //         return true;
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return true;
+        //     }
+        // }
+        
+        public static bool GetShirtData_Prefix(Farmer __instance, ref List<string> __result)
+        {
+            if (__result == null)
+            {
+                __result = new List<string>(); // Ensure __result is initialized
+            }
 
-        private void ReplaceShirt(object sender, AssetRequestedEventArgs e)
+            if (__instance.shirt.Value == -1)
+            {
+                __result.Clear();
+                __result.Add("Sleeveless"); // Adding the "Sleeveless" property
+                return false; // Skip original method
+            }
+            return true; // Continue with original method
+        }
+
+        private void ReplaceShirtOld(object sender, AssetRequestedEventArgs e)
         {
             if (!IsAssetShirts(e)) return;
             e.Edit(asset =>
@@ -54,6 +101,85 @@ namespace NoShirt
             });
         }
         
+        private void ReplaceShirt(object sender, AssetRequestedEventArgs e)
+        {
+            if (!IsAssetShirts(e)) return;
+            e.Edit(asset =>
+            {
+                var editor = asset.AsImage();
+                int currentSkinColor = GetValidSkinColor(Game1.player?.skin?.Value ?? 0);
+
+                Texture2D shirtTexture = _helper.ModContent.Load<Texture2D>("assets/chest.png");
+                Color[] modifiedPixels = GetModifiedShirtPixels(shirtTexture, _originalColorsTexture, _skinColorsTexture, currentSkinColor);
+        
+                Texture2D modifiedShirtTexture = new Texture2D(Game1.graphics.GraphicsDevice, shirtTexture.Width, shirtTexture.Height);
+                modifiedShirtTexture.SetData(modifiedPixels);
+        
+                editor.PatchImage(modifiedShirtTexture, targetArea: ShirtArea);
+            });
+        }
+        
+        private void RemoveShirt(object sender, AssetRequestedEventArgs e)
+        {
+            if (!IsAssetShirts(e)) return;
+            e.Edit(asset =>
+            {
+                var editor = asset.AsImage();
+                editor.PatchImage(_blankRectangle, targetArea: ShirtArea);
+            });
+        }
+        
+        private void RemoveShoulder(object sender, AssetRequestedEventArgs e)
+        {
+            if (!IsAssetShirts(e)) return;
+            e.Edit(asset =>
+            {
+                var editor = asset.AsImage();
+                editor.PatchImage(_blankRectangle, targetArea: ShoulderArea);
+            });
+        }
+        
+        private void ReplaceShoulder(object sender, AssetRequestedEventArgs e)
+        {
+            if (!IsAssetShirts(e)) return;
+            e.Edit(asset =>
+            {
+                var editor = asset.AsImage();
+                int currentSkinColor = GetValidSkinColor(Game1.player?.skin?.Value ?? 0);
+
+                Texture2D shoulderTexture = _helper.ModContent.Load<Texture2D>("assets/shoulder.png");
+                Color[] modifiedPixels = GetModifiedShirtPixels(shoulderTexture, _originalColorsTexture, _skinColorsTexture, currentSkinColor);
+        
+                Texture2D modifiedShoulderTexture = new Texture2D(Game1.graphics.GraphicsDevice, shoulderTexture.Width, shoulderTexture.Height);
+                modifiedShoulderTexture.SetData(modifiedPixels);
+                
+                editor.PatchImage(modifiedShoulderTexture, targetArea: ShoulderArea);
+            });
+        }
+
+        private void ReplaceSleeves(object sender, AssetRequestedEventArgs e)
+        {
+            if(!e.NameWithoutLocale.IsEquivalentTo("Data/ClothingInformation")) return;
+            e.Edit(asset =>
+            {
+                var editor = asset.AsDictionary<int, string>();
+                editor.Data[-2] = "Shirt/Shirt/A wearable shirt./0/-1/50/255 255 255/false/Shirt/Sleeveless";
+                editor.Data[1209] = 
+                    "Sports Shirt/Sports Shirt/Knock it out of the park with this classic look./209/-1/50/255 0 0/false/Shirt/Sleeveless";
+                _monitor.Log(editor.Data[1209], LogLevel.Error);
+                _monitor.Log(editor.Data[-2], LogLevel.Error);
+            });
+        }
+        
+        private Color[] GetModifiedShirtPixels(Texture2D shirtTexture, Texture2D originalColors, Texture2D skinColors, int skinValue)
+        {
+            Color[] pixels = new Color[shirtTexture.Width * shirtTexture.Height];
+            shirtTexture.GetData(pixels);
+            Color[] originalData = GetDataFromTexture(originalColors);
+            Color[] replacementColors = GetReplacementColors(skinColors, skinValue);
+            ReplaceColors(pixels, originalData, replacementColors);
+            return pixels;
+        }
         
         /// <summary>
         /// Get the valid skin color for the player, adjusting the value if it's out of bounds
@@ -114,10 +240,7 @@ namespace NoShirt
             for (int i = 0; i < pixels.Length; i++)
             {
                 // Skip replacement for transparent pixels
-                if (pixels[i].A == 0)
-                {
-                    continue;
-                }
+                if (pixels[i].A == 0) continue;
                 for (int j = 0; j < originalData.Length; j++)
                 {
                     if (AreColorsEqual(pixels[i], originalData[j]))
@@ -137,7 +260,9 @@ namespace NoShirt
         private void OnSaveLoad(object sender, SaveLoadedEventArgs e)
         {
             _skinColor = GetValidSkinColor(Game1.player.skin.Value);
-            _helper.GameContent.InvalidateCache("Characters/Farmer/shirts");
+            _helper.GameContent.InvalidateCache("Data/ClothingInformation");
+            _monitor.Log(Game1.player.GetShirtIndex().ToString(), LogLevel.Error);
+            _monitor.Log(string.Concat(Game1.player.GetShirtExtraData()), LogLevel.Error);
         }
         
         private void CheckSkinChange(object sender, UpdateTickedEventArgs e)
@@ -145,6 +270,9 @@ namespace NoShirt
             if (_skinColor == Game1.player.skin.Value) return;
             _skinColor = Game1.player.skin.Value;
             _helper.GameContent.InvalidateCache("Characters/Farmer/shirts");
+            _helper.GameContent.InvalidateCache("Data/ClothingInformation");
+            _monitor.Log(Game1.player.GetShirtIndex().ToString(), LogLevel.Error);
+            _monitor.Log(string.Concat(Game1.player.GetShirtExtraData()), LogLevel.Error);
         }
     }
 }
