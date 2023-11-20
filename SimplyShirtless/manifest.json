@@ -1,0 +1,10 @@
+{
+  "Name": "Simply Shirtless",
+  "Author": "JhonnieRandler & Brukob",
+  "Version": "0.0.1",
+  "Description": "Strip the farmer's fallback shirt.",
+  "UniqueID": "JhonnieMike.SimplyShirtless",
+  "EntryDll": "SimplyShirtless.dll",
+  "MinimumApiVersion": "3.18.3",
+  "UpdateKeys": []
+}

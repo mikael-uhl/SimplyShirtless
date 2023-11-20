@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoShirt", "NoShirt\NoShirt.csproj", "{11219A10-BA73-4C0B-86C4-56E4B1209965}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplyShirtless", "SimplyShirtless\SimplyShirtless.csproj", "{11219A10-BA73-4C0B-86C4-56E4B1209965}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

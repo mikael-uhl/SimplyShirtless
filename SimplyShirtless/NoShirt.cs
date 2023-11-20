@@ -1,32 +1,26 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace NoShirt
+namespace SimplyShirtless
 {
-    public class NoShirt
+    public class SimplyShirtless
     {
         private readonly IMonitor _monitor;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
         
-        private readonly Texture2D _blankRectangle;
+        private readonly IRawTextureData _blankRectangle;
         
-        public NoShirt(IModHelper helper, IMonitor monitor)
+        public SimplyShirtless(IModHelper helper, IMonitor monitor)
         {
             _monitor = monitor;
-            _blankRectangle = helper.ModContent.Load<Texture2D>("assets/blank.png");
+            _blankRectangle = helper.ModContent.Load<IRawTextureData>("assets/blank.png");
             helper.Events.Content.AssetRequested += this.RemoveShirt;
             helper.Events.Content.AssetRequested += this.RemoveShoulder;
-        }
-        
-        private static bool IsAssetShirts(AssetRequestedEventArgs assetRequestEvent)
-        {
-            return assetRequestEvent.NameWithoutLocale.IsEquivalentTo("Characters/Farmer/shirts");
         }
         
         [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -59,6 +53,11 @@ namespace NoShirt
                 var editor = asset.AsImage();
                 editor.PatchImage(_blankRectangle, targetArea: ShoulderArea);
             });
+        }
+        
+        private static bool IsAssetShirts(AssetRequestedEventArgs assetRequestEvent)
+        {
+            return assetRequestEvent.NameWithoutLocale.IsEquivalentTo("Characters/Farmer/shirts");
         }
     }
 }
