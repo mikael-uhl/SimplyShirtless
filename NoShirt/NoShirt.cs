@@ -32,9 +32,11 @@ namespace NoShirt
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         public static bool GetShirtData_Prefix(Farmer __instance, ref List<string> __result)
         {
+            if (__instance.shirtItem.Value != null) return true;
             __result ??= new List<string>();
-
-            if (__instance.shirt.Value != -1) return true;
+            
+            if (!__result.Contains("Sleeveless")) __result.Add("Sleeveless");
+            
             __result.Clear();
             __result.Add("Sleeveless");
             return false;
