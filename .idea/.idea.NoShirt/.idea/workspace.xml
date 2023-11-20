@@ -4,26 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f708c798-848e-42da-8eb4-654d436dd9d1" name="Changes" comment="Fixed all shirts going sleeveless;">
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.NoShirt/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Simply Shirtless/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Simply Shirtless/.idea/dictionaries/brukob.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Simply Shirtless/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Simply Shirtless/.idea/indexLayout.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Simply Shirtless/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Simply Shirtless.sln.DotSettings.user" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SimplyShirtless/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.NoShirt/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.NoShirt/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.NoShirt/.idea/indexLayout.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.NoShirt/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/NoShirt.sln" beforeDir="false" afterPath="$PROJECT_DIR$/Simply Shirtless.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NoShirt/.idea/.idea.NoShirt/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/.idea/.idea.NoShirt/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NoShirt/ModEntry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/ModEntry.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NoShirt/NoShirt.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/NoShirt.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NoShirt/NoShirt.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/SimplyShirtless.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NoShirt/assets/blank.png" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/assets/blank.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NoShirt/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/manifest.json" afterDir="false" />
+    <list default="true" id="f708c798-848e-42da-8eb4-654d436dd9d1" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/SimplyShirtless/frameworks/CreateMenu.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimplyShirtless/frameworks/GenericModConfigMeuApi.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SimplyShirtless/frameworks/ModConfig.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.NoShirt/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.NoShirt/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Simply Shirtless.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/Simply Shirtless.sln.DotSettings.user" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimplyShirtless/ModEntry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/ModEntry.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimplyShirtless/NoShirt.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/SimplyShirtless.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimplyShirtless/SimplyShirtless.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/SimplyShirtless.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimplyShirtless/assets/blank.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SimplyShirtless/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/SimplyShirtless/manifest.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,10 +53,13 @@
     </option>
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b5c2f61f254049c0b4c4e245f9793a8be9c00/60/e1aea709/IRawTextureData.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/b5c2f61f254049c0b4c4e245f9793a8be9c00/f9/e2bb51f3/RawTextureData.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$USER_HOME$/Projetos/Stardew-Valley.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///home/brukob/github/NoShirt/NoShirt/NoShirt.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///home/brukob/github/NoShirt/SimplyShirtless/ModEntry.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/SimplyShirtless/ModEntry.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/SimplyShirtless/NoShirt.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/SimplyShirtless/SimplyShirtless.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/SimplyShirtless/manifest.json" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -177,7 +171,7 @@
       <workItem from="1700347857841" duration="1507000" />
       <workItem from="1700349400968" duration="13732000" />
       <workItem from="1700375013121" duration="13389000" />
-      <workItem from="1700416165274" duration="25813000" />
+      <workItem from="1700416165274" duration="38992000" />
     </task>
     <task id="LOCAL-00001" summary="Added half working NoShirt">
       <created>1674450577262</created>
@@ -254,7 +248,15 @@
       <option name="project" value="LOCAL" />
       <updated>1700447129435</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Renamed project;">
+      <option name="closed" value="true" />
+      <created>1700468853942</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1700468853942</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -285,7 +287,8 @@
     <MESSAGE value="Cleaned code;" />
     <MESSAGE value="Further cleaning;" />
     <MESSAGE value="Fixed all shirts going sleeveless;" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed all shirts going sleeveless;" />
+    <MESSAGE value="Renamed project;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Renamed project;" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -1,0 +1,76 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
+using StardewModdingAPI.Events;
+using StardewValley;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+
+namespace SimplyShirtless
+{
+    public class SimplyShirtless
+    {
+        private readonly IMonitor _monitor;
+        private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
+        private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
+        
+        public SimplyShirtless(IModHelper helper, IMonitor monitor)
+        {
+            _monitor = monitor;
+            helper.Events.Content.AssetRequested += this.RemoveShirt;
+        }
+        
+        /// <summary>
+        /// Prefix method rewriting shirt's extra data in the Farmer class.
+        /// Adds "Sleeveless" to the shirt's extra data if shirt is absent and fallback activates.
+        /// This is in line with how the game dynamically handles shirts with the "Sleeveless" property
+        /// found in Data/ClothingInformation.json.
+        /// See stardewvalleywiki.com/Modding:Modder_Guide/APIs/Harmony
+        /// </summary>
+        /// <param name="__instance">The Farmer instance provided by Harmony.</param>
+        /// <param name="__result">The resulting list of extra data for the shirt provided by Harmony.</param>
+        /// <returns>Returns whether to skip the original method (false) or continue executing it (true).</returns>
+        [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Names provided by Harmony")]
+        public static bool GetShirtExtraData_Prefix(Farmer __instance, ref List<string> __result)
+        {
+            if (__instance.shirtItem.Value != null) return true;
+            __result ??= new List<string>();
+            if (!__result.Contains("Sleeveless")) __result.Add("Sleeveless");
+            __result.Clear();
+            __result.Add("Sleeveless");
+            return false;
+        }
+
+        private void RemoveShirt(object sender, AssetRequestedEventArgs e)
+        {
+            if (!IsAssetShirts(e)) return;
+            e.Edit(asset =>
+            {
+                var editor = asset.AsImage();
+                editor.PatchImage(NewBlankTexture(), targetArea: ShirtArea);
+                editor.PatchImage(NewBlankTexture(), targetArea: ShoulderArea);
+            });
+        }
+
+        private static bool IsAssetShirts(AssetRequestedEventArgs e)
+        {
+            return e.NameWithoutLocale.IsEquivalentTo("Characters/Farmer/shirts");
+        }
+
+        /// <summary>
+        /// Generates a blank Texture2D of specified width and height with transparent pixels.
+        /// </summary>
+        /// <param name="width">The width of the generated blank texture.</param>
+        /// <param name="height">The height of the generated blank texture.</param>
+        /// <returns>Returns a Texture2D instance representing a blank rectangle filled with transparent pixels.</returns>
+        private static Texture2D NewBlankTexture(int width = 8, int height = 32)
+        {
+            var blankTexture = new Texture2D(Game1.graphics.GraphicsDevice, width, height);
+            var data = new Color[width * height];
+            Array.Fill(data, Color.Transparent);
+            blankTexture.SetData(data);
+            return blankTexture;
+        }
+    }
+}
