@@ -14,18 +14,19 @@ namespace SimplyShirtless
         private readonly IMonitor _monitor;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
-        
+
         public SimplyShirtless(IModHelper helper, IMonitor monitor)
         {
             _monitor = monitor;
             helper.Events.Content.AssetRequested += this.RemoveShirt;
+            helper.Events.Content.AssetRequested += this.ReplaceTorso;
         }
         
         /// <summary>
         /// Prefix method rewriting shirt's extra data in the Farmer class.
         /// Adds "Sleeveless" to the shirt's extra data if shirt is absent and fallback activates.
-        /// This is in line with how the game dynamically handles shirts with the "Sleeveless" property
-        /// found in Data/ClothingInformation.json.
+        /// This is necessary since the fallback shirt never has the extra data found in Data/ClothingInformation.json
+        /// (even after manually writing). Hence this forcing method.
         /// See stardewvalleywiki.com/Modding:Modder_Guide/APIs/Harmony
         /// </summary>
         /// <param name="__instance">The Farmer instance provided by Harmony.</param>
@@ -36,15 +37,13 @@ namespace SimplyShirtless
         {
             if (__instance.shirtItem.Value != null) return true;
             __result ??= new List<string>();
-            if (!__result.Contains("Sleeveless")) __result.Add("Sleeveless");
-            __result.Clear();
             __result.Add("Sleeveless");
             return false;
         }
 
         private void RemoveShirt(object sender, AssetRequestedEventArgs e)
         {
-            if (!IsAssetShirts(e)) return;
+            if (!IsAssetTarget(e, "Characters/Farmer/shirts")) return;
             e.Edit(asset =>
             {
                 var editor = asset.AsImage();
@@ -52,10 +51,16 @@ namespace SimplyShirtless
                 editor.PatchImage(NewBlankTexture(), targetArea: ShoulderArea);
             });
         }
-
-        private static bool IsAssetShirts(AssetRequestedEventArgs e)
+        
+        private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
-            return e.NameWithoutLocale.IsEquivalentTo("Characters/Farmer/shirts");
+            if (!IsAssetTarget(e, "Characters/Farmer/farmer_base")) return;
+            e.LoadFromModFile<Texture2D>("assets/flat.png", AssetLoadPriority.Medium);
+        }
+
+        private static bool IsAssetTarget(AssetRequestedEventArgs e, string target)
+        {
+            return e.NameWithoutLocale.IsEquivalentTo(target);
         }
 
         /// <summary>
