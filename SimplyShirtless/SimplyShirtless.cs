@@ -13,20 +13,18 @@ namespace SimplyShirtless
     public class SimplyShirtless
     {
         private readonly IModHelper _helper;
-        private ModConfig _config;
-        private readonly bool _isModEnabled;
+        private static ModConfig _config;
         private readonly IMonitor _monitor;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
 
-        public SimplyShirtless(IModHelper helper, IMonitor monitor)
+        public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config)
         {
             _helper = helper;
-            _config = helper.ReadConfig<ModConfig>();
+            _config = config;
             _monitor = monitor;
             _helper.Events.Content.AssetRequested += this.RemoveShirt;
             helper.Events.Content.AssetRequested += this.ReplaceTorso;
-            _isModEnabled = _config.ModToggle;
         }
         
         /// <summary>
@@ -42,6 +40,7 @@ namespace SimplyShirtless
         [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Names provided by Harmony")]
         public static bool GetShirtExtraData_Prefix(Farmer __instance, ref List<string> __result)
         {
+            if (!_config.ModToggle)  return true;
             if (__instance.shirtItem.Value != null) return true;
             __result ??= new List<string>();
             __result.Add("Sleeveless");
@@ -50,7 +49,7 @@ namespace SimplyShirtless
 
         private void RemoveShirt(object sender, AssetRequestedEventArgs e)
         {
-            if (!_isModEnabled) return;
+            if (!_config.ModToggle) return;
             if (!IsAssetTarget(e, "Characters/Farmer/shirts")) return;
             e.Edit(asset =>
             {
@@ -62,7 +61,7 @@ namespace SimplyShirtless
         
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
-            if (!_isModEnabled) return;
+            if (!_config.ModToggle) return;
             if (!IsAssetTarget(e, "Characters/Farmer/farmer_base")) return;
             e.LoadFromModFile<Texture2D>("assets/flat.png", AssetLoadPriority.Medium);
         }

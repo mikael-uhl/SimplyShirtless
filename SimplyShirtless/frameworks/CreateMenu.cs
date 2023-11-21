@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 
@@ -10,10 +11,17 @@ namespace SimplyShirtless.frameworks
         private readonly IMonitor _monitor;
         private  ModConfig _config;
         
-        public CreateMenu(IModHelper helper, IManifest modManifest, IMonitor monitor) {
+        private readonly List<string> _patchedAssets = new()
+        {
+            "Characters/Farmer/shirts",
+            "Characters/Farmer/farmer_base",
+            "Data/ClothingInformation"
+        };
+        
+        public CreateMenu(IModHelper helper, IManifest modManifest, IMonitor monitor, ModConfig config) {
             _monitor = monitor;
             _helper = helper;
-            _config = helper.ReadConfig<ModConfig>();
+            _config = config;
             _modManifest = modManifest;
             _helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         }
@@ -75,6 +83,14 @@ namespace SimplyShirtless.frameworks
         private void CommitConfig()
         {
             _helper.WriteConfig(_config);
+            string currentLocale = _helper.GameContent.CurrentLocale != "" ? 
+                "." + _helper.GameContent.CurrentLocale : "";
+            
+            foreach (var path in _patchedAssets)
+            {
+                _helper.GameContent.InvalidateCache(path);
+                _helper.GameContent.InvalidateCache(path + currentLocale);
+            }
         }
 
         private string FormatAllowedValues(string value)
