@@ -5,8 +5,6 @@ namespace SimplyShirtless.frameworks
 {
     public class CreateMenu
     {
-        //TODO: translate this whole thing into Simply Shirtless,
-        //maybe ignore i18n at first and just make the menu work in-game, single language;
         private readonly IModHelper _helper;
         private readonly IManifest _modManifest;
         private readonly IMonitor _monitor;
@@ -39,40 +37,59 @@ namespace SimplyShirtless.frameworks
             
             configMenuApi.AddBoolOption(
                 mod: _modManifest,
-                name: () => I18n.TitleEdnaldo(),
-                tooltip: () => I18n.TooltipEdnaldo(),
-                getValue: () => _config.EdnaldoPereiraToggle,
-                setValue: value => _config.EdnaldoPereiraToggle = value
+                name: () => I18n.TitleSimplyShirtless(),
+                tooltip: () => I18n.TooltipSimplyShirtless(),
+                getValue: () => _config.ModToggle,
+                setValue: value => _config.ModToggle = value
             );
             
             configMenuApi.AddBoolOption(
                 mod: _modManifest,
-                name: () => I18n.TitlePalmirinha(),
-                tooltip: () => I18n.TooltipPalmirinha(),
-                getValue: () => _config.PalmirinhaToggle,
-                setValue: value => _config.PalmirinhaToggle = value
+                name: () => I18n.TitleFemaleSprite(),
+                tooltip: () => I18n.TooltipFemaleSprite(),
+                getValue: () => _config.FemaleToggle,
+                setValue: value => _config.FemaleToggle = value
+            );
+
+            configMenuApi.AddTextOption(
+                mod: _modManifest,
+                name: () => I18n.TitleSprite(),
+                tooltip: () => I18n.TooltipSprite(),
+                getValue: () => _config.Sprite.ToString(),
+                setValue: value => _config.Sprite = int.Parse(value),
+                allowedValues: new[] { "0", "1", "2" },
+                formatAllowedValue: value => FormatAllowedValues(value)
             );
             
-            configMenuApi.AddBoolOption(
+            configMenuApi.AddTextOption(
                 mod: _modManifest,
-                name: () => I18n.TitleGloboRural(),
-                tooltip: () => I18n.TooltipGloboRural(),
-                getValue: () => _config.GloboRuralToggle,
-                setValue: value => _config.GloboRuralToggle = value
-            );
-            
-            configMenuApi.AddBoolOption(
-                mod: _modManifest,
-                name: () => I18n.TitleMarciaSensitiva(),
-                tooltip: () => I18n.TooltipMarciaSensitiva(),
-                getValue: () => _config.MarciaSensitivaToggle,
-                setValue: value => _config.MarciaSensitivaToggle = value
+                name: () => I18n.TitleMultiplayerSprite(),
+                tooltip: () => I18n.TooltipMultiplayerSprite(),
+                getValue: () => _config.MultiplayerSprite.ToString(),
+                setValue: value => _config.MultiplayerSprite = int.Parse(value),
+                allowedValues: new[] { "0", "1", "2" },
+                formatAllowedValue: value => FormatAllowedValues(value)
             );
         }
         
         private void CommitConfig()
         {
             _helper.WriteConfig(_config);
+        }
+
+        private string FormatAllowedValues(string value)
+        {
+            switch (value)
+            {
+                case "0":
+                    return I18n.Flat();
+                case "1":
+                    return I18n.Toned();
+                case "2":
+                    return I18n.Sculpted();
+                default:
+                    return value;
+            }
         }
     }
 }

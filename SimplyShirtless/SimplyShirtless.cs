@@ -6,20 +6,27 @@ using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using SimplyShirtless.frameworks;
 
 namespace SimplyShirtless
 {
     public class SimplyShirtless
     {
+        private readonly IModHelper _helper;
+        private ModConfig _config;
+        private readonly bool _isModEnabled;
         private readonly IMonitor _monitor;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
 
         public SimplyShirtless(IModHelper helper, IMonitor monitor)
         {
+            _helper = helper;
+            _config = helper.ReadConfig<ModConfig>();
             _monitor = monitor;
-            helper.Events.Content.AssetRequested += this.RemoveShirt;
+            _helper.Events.Content.AssetRequested += this.RemoveShirt;
             helper.Events.Content.AssetRequested += this.ReplaceTorso;
+            _isModEnabled = _config.ModToggle;
         }
         
         /// <summary>
@@ -43,6 +50,7 @@ namespace SimplyShirtless
 
         private void RemoveShirt(object sender, AssetRequestedEventArgs e)
         {
+            if (!_isModEnabled) return;
             if (!IsAssetTarget(e, "Characters/Farmer/shirts")) return;
             e.Edit(asset =>
             {
@@ -54,6 +62,7 @@ namespace SimplyShirtless
         
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
+            if (!_isModEnabled) return;
             if (!IsAssetTarget(e, "Characters/Farmer/farmer_base")) return;
             e.LoadFromModFile<Texture2D>("assets/flat.png", AssetLoadPriority.Medium);
         }
@@ -77,5 +86,6 @@ namespace SimplyShirtless
             blankTexture.SetData(data);
             return blankTexture;
         }
+
     }
 }
