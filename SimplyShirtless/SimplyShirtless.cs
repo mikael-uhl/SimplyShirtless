@@ -12,18 +12,15 @@ namespace SimplyShirtless
 {
     public class SimplyShirtless
     {
-        private readonly IModHelper _helper;
         private static ModConfig _config;
         private readonly IMonitor _monitor;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
 
-        public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config)
-        {
-            _helper = helper;
+        public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config) {
             _config = config;
             _monitor = monitor;
-            _helper.Events.Content.AssetRequested += this.RemoveShirt;
+            helper.Events.Content.AssetRequested += this.RemoveShirt;
             helper.Events.Content.AssetRequested += this.ReplaceTorso;
         }
         
@@ -40,7 +37,7 @@ namespace SimplyShirtless
         [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Names provided by Harmony")]
         public static bool GetShirtExtraData_Prefix(Farmer __instance, ref List<string> __result)
         {
-            if (!_config.ModToggle)  return true;
+            if (!_config.ModToggle) return true;
             if (__instance.shirtItem.Value != null) return true;
             __result ??= new List<string>();
             __result.Add("Sleeveless");
@@ -85,6 +82,5 @@ namespace SimplyShirtless
             blankTexture.SetData(data);
             return blankTexture;
         }
-
     }
 }

@@ -7,13 +7,13 @@ namespace SimplyShirtless
 { 
     internal sealed class ModEntry : Mod
     {
-        private ModConfig Config;
+        private ModConfig _config;
         public override void Entry(IModHelper helper)
         {
-            Config = Helper.ReadConfig<ModConfig>();
+            _config = Helper.ReadConfig<ModConfig>();
             I18n.Init(helper.Translation);
-            _ = new SimplyShirtless(helper, Monitor, Config);
-            _ = new CreateMenu(helper, ModManifest, Monitor, Config);
+            _ = new SimplyShirtless(helper, Monitor, _config);
+            _ = new CreateMenu(helper, ModManifest, Monitor, _config);
             var harmony = new Harmony(ModManifest.UniqueID);
             harmony.Patch(
                 original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetShirtExtraData)),

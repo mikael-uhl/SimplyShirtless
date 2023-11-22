@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 
@@ -11,13 +11,6 @@ namespace SimplyShirtless.frameworks
         private readonly IMonitor _monitor;
         private  ModConfig _config;
         
-        private readonly List<string> _patchedAssets = new()
-        {
-            "Characters/Farmer/shirts",
-            "Characters/Farmer/farmer_base",
-            "Data/ClothingInformation"
-        };
-        
         public CreateMenu(IModHelper helper, IManifest modManifest, IMonitor monitor, ModConfig config) {
             _monitor = monitor;
             _helper = helper;
@@ -26,12 +19,11 @@ namespace SimplyShirtless.frameworks
             _helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         }
         
-        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
-        {
+        [SuppressMessage("ReSharper", "ConvertClosureToMethodGroup")]
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e) {
             var configMenuApi =
                 _helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
-            if (configMenuApi is null)
-            {
+            if (configMenuApi is null) {
                 _monitor.Log(I18n.DisabledGmcm(), LogLevel.Info);
                 return;
             }
@@ -79,33 +71,20 @@ namespace SimplyShirtless.frameworks
                 formatAllowedValue: value => FormatAllowedValues(value)
             );
         }
-        
-        private void CommitConfig()
-        {
+
+        private void CommitConfig() {
             _helper.WriteConfig(_config);
-            string currentLocale = _helper.GameContent.CurrentLocale != "" ? 
-                "." + _helper.GameContent.CurrentLocale : "";
-            
-            foreach (var path in _patchedAssets)
-            {
-                _helper.GameContent.InvalidateCache(path);
-                _helper.GameContent.InvalidateCache(path + currentLocale);
-            }
+            _helper.GameContent.InvalidateCache("Characters/Farmer/shirts");
+            _helper.GameContent.InvalidateCache("Characters/Farmer/farmer_base");
         }
 
-        private string FormatAllowedValues(string value)
-        {
-            switch (value)
-            {
-                case "0":
-                    return I18n.Flat();
-                case "1":
-                    return I18n.Toned();
-                case "2":
-                    return I18n.Sculpted();
-                default:
-                    return value;
-            }
+        private static string FormatAllowedValues(string value) {
+            return value switch {
+                "0" => I18n.Flat(),
+                "1" => I18n.Toned(),
+                "2" => I18n.Sculpted(),
+                _ => value
+            };
         }
     }
 }
