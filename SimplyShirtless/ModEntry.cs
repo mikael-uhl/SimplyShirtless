@@ -15,7 +15,8 @@ namespace SimplyShirtless
             _ = new SimplyShirtless(helper, Monitor, _config);
             _ = new CreateMenu(helper, ModManifest, Monitor, _config);
             var harmony = new Harmony(ModManifest.UniqueID);
-            harmony.Patch(
+            harmony.Patch
+            (
                 original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetShirtExtraData)),
                 prefix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.GetShirtExtraData_Prefix))
             );

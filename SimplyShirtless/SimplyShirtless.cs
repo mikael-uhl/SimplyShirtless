@@ -17,7 +17,8 @@ namespace SimplyShirtless
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
 
-        public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config) {
+        public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config)
+        {
             _config = config;
             _monitor = monitor;
             helper.Events.Content.AssetRequested += this.RemoveShirt;
@@ -56,17 +57,40 @@ namespace SimplyShirtless
             });
         }
         
+        private string GetTorsoType(int spriteType)
+        {
+            return spriteType switch
+            {
+                0 => "flat",
+                1 => "toned",
+                2 => "sculpted",
+                _ => throw new ArgumentOutOfRangeException(nameof(spriteType), "Invalid sprite type"),
+            };
+        }
+        
+        private void LoadSprite(AssetRequestedEventArgs e, string spriteName, bool isBald = false)
+        {
+            var torsoPath = $"Characters/Farmer/farmer_base{(isBald ? "_bald" : "")}";
+            var spritePath = $"assets/male/{spriteName}{(isBald ? "_bald" : "")}.png";
+            
+            if (!IsAssetTarget(e, torsoPath)) return;
+            e.LoadFromModFile<Texture2D>(spritePath, AssetLoadPriority.Medium);
+        }
+        
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
             if (!_config.ModToggle) return;
-            if (!IsAssetTarget(e, "Characters/Farmer/farmer_base")) return;
-            e.LoadFromModFile<Texture2D>("assets/flat.png", AssetLoadPriority.Medium);
+            
+            var torsoType = GetTorsoType(_config.Sprite);
+            
+            LoadSprite(e, torsoType);
+            LoadSprite(e, torsoType, isBald: true);
         }
 
         private static bool IsAssetTarget(AssetRequestedEventArgs e, string target)
         {
             return e.NameWithoutLocale.IsEquivalentTo(target);
-        }
+        }   
 
         /// <summary>
         /// Generates a blank Texture2D of specified width and height with transparent pixels.
