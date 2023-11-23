@@ -13,7 +13,7 @@ namespace SimplyShirtless
     public class SimplyShirtless
     {
         private static ModConfig _config;
-        private readonly IMonitor _monitor;
+        private static IMonitor _monitor;
         private readonly string _baldTarget;
         private readonly string _hairyTarget;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
@@ -28,14 +28,6 @@ namespace SimplyShirtless
             
             helper.Events.Content.AssetRequested += this.RemoveShirt;
             helper.Events.Content.AssetRequested += this.ReplaceTorso;
-            helper.Events.Display.RenderingActiveMenu += this.IsCreateFarmerMenuActive;
-        }
-
-        private void IsCreateFarmerMenuActive(object sender, RenderingActiveMenuEventArgs e)
-        {
-            //if (e.ToString() is null) return;
-            //_monitor.Log(e.ToString(), LogLevel.Error);
-            //TODO: Farmer creation menu does not render sleeves. Possibly due to Farmer.shirtItem being null.
         }
         
         /// <summary>
@@ -53,6 +45,7 @@ namespace SimplyShirtless
         {
             if (!_config.ModToggle) return true;
             if (__instance.shirtItem.Value != null) return true;
+            if (__instance.shirt.Value >= 0) return true;
             __result ??= new List<string>();
             __result.Add("Sleeveless");
             return false;
@@ -97,7 +90,7 @@ namespace SimplyShirtless
         private static bool IsAssetTarget(AssetRequestedEventArgs e, string target)
         {
             return e.NameWithoutLocale.IsEquivalentTo(target);
-        }   
+        }
 
         /// <summary>
         /// Generates a blank Texture2D of specified width and height with transparent pixels.

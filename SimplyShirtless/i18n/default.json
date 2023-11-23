@@ -1,14 +1,14 @@
 {
   //GMCM
   "disabled-gmcm": "GenericModConfigMenu not installed, skipping menu registry.",
-  "title-simply-shirtless": "Activate Simply Shirtless",
-  "tooltip-simply-shirtless": "Allows the farmer to go shirtless",
-  "title-sprite": "Choose Texture",
-  "tooltip-sprite": "Allows you to change the farmer's texture.",
-  "title-multiplayer-sprite": "Multiplayer Character Textures",
-  "tooltip-multiplayer-sprite": "Choose the texture of your farm companions during multiplayer sessions.",
-  "title-female-sprite": "Female Physique Display",
-  "tooltip-female-sprite": "Allows you to show off the farmer's physique without removing the t-shirt.",
+  "title-simply-shirtless": "Enable Simply Shirtless",
+  "tooltip-simply-shirtless": "Removes the male undershirt.",
+  "title-sprite": "Torso Texture",
+  "tooltip-sprite": "Allows you to choose your torso texture.",
+  "title-multiplayer-sprite": "Multiplayer Texture",
+  "tooltip-multiplayer-sprite": "Choose texture for multiplayer farmers.",
+  "title-female-sprite": "Enable Shirtless Female",
+  "tooltip-female-sprite": "Replaces the female undershirt with the Island Bikini.",
   "flat": "Flat",
   "toned": "Toned",
   "sculpted": "Sculpted"
