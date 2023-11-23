@@ -14,6 +14,8 @@ namespace SimplyShirtless
     {
         private static ModConfig _config;
         private readonly IMonitor _monitor;
+        private readonly string _baldTarget;
+        private readonly string _hairyTarget;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
 
@@ -21,8 +23,19 @@ namespace SimplyShirtless
         {
             _config = config;
             _monitor = monitor;
+            _baldTarget = "Characters/Farmer/farmer_base_bald";
+            _hairyTarget = "Characters/Farmer/farmer_base";
+            
             helper.Events.Content.AssetRequested += this.RemoveShirt;
             helper.Events.Content.AssetRequested += this.ReplaceTorso;
+            helper.Events.Display.RenderingActiveMenu += this.IsCreateFarmerMenuActive;
+        }
+
+        private void IsCreateFarmerMenuActive(object sender, RenderingActiveMenuEventArgs e)
+        {
+            //if (e.ToString() is null) return;
+            //_monitor.Log(e.ToString(), LogLevel.Error);
+            //TODO: Farmer creation menu does not render sleeves. Possibly due to Farmer.shirtItem being null.
         }
         
         /// <summary>
@@ -57,34 +70,28 @@ namespace SimplyShirtless
             });
         }
         
-        private string GetTorsoType(int spriteType)
-        {
-            return spriteType switch
-            {
-                0 => "flat",
-                1 => "toned",
-                2 => "sculpted",
-                _ => throw new ArgumentOutOfRangeException(nameof(spriteType), "Invalid sprite type"),
-            };
-        }
-        
-        private void LoadSprite(AssetRequestedEventArgs e, string spriteName, bool isBald = false)
-        {
-            var torsoPath = $"Characters/Farmer/farmer_base{(isBald ? "_bald" : "")}";
-            var spritePath = $"assets/male/{spriteName}{(isBald ? "_bald" : "")}.png";
-            
-            if (!IsAssetTarget(e, torsoPath)) return;
-            e.LoadFromModFile<Texture2D>(spritePath, AssetLoadPriority.Medium);
-        }
-        
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
             if (!_config.ModToggle) return;
-            
-            var torsoType = GetTorsoType(_config.Sprite);
-            
-            LoadSprite(e, torsoType);
-            LoadSprite(e, torsoType, isBald: true);
+            if (IsAssetTarget(e, _hairyTarget))
+            {
+                e.LoadFromModFile<Texture2D>(GetModdedTorso(), AssetLoadPriority.Medium);
+            } else if (IsAssetTarget(e, _baldTarget))
+            {
+                e.LoadFromModFile<Texture2D>(GetModdedTorso(isBald: true), AssetLoadPriority.Medium);
+            }
+        }
+        
+        private string GetModdedTorso(bool isBald = false)
+        {
+            var bald = "";
+            if (isBald) bald = "_bald";
+            if (_config.Sprite == 0) return $"assets/male/flat{bald}.png";
+            if (_config.Sprite == 1) return $"assets/male/toned{bald}.png";
+            if (_config.Sprite == 2) return $"assets/male/sculpted{bald}.png";
+
+            _monitor.Log("Chosen Sprite option not available. Defaulting to Toned.", LogLevel.Warn);
+            return $"assets/male/toned{bald}.png";
         }
 
         private static bool IsAssetTarget(AssetRequestedEventArgs e, string target)
