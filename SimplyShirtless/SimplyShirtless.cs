@@ -32,7 +32,7 @@ namespace SimplyShirtless
         
         /// <summary>
         /// Prefix method rewriting shirt's extra data in the Farmer class.
-        /// Adds "Sleeveless" to the shirt's extra data if shirt is absent and fallback activates.
+        /// Adds "Sleeveless" to the shirt's extra data if shirt is unequipped and player is not creating a farmer.
         /// This is necessary since the fallback shirt never has the extra data found in Data/ClothingInformation.json
         /// (even after manually writing). Hence this forcing method.
         /// See stardewvalleywiki.com/Modding:Modder_Guide/APIs/Harmony
@@ -43,9 +43,7 @@ namespace SimplyShirtless
         [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Names provided by Harmony")]
         public static bool GetShirtExtraData_Prefix(Farmer __instance, ref List<string> __result)
         {
-            if (!_config.ModToggle) return true;
-            if (__instance.shirtItem.Value != null) return true;
-            if (__instance.shirt.Value >= 0) return true;
+            if (!_config.ModToggle || __instance.shirtItem.Value != null || __instance.shirt.Value >= 0) return true;
             __result ??= new List<string>();
             __result.Add("Sleeveless");
             return false;
@@ -75,6 +73,14 @@ namespace SimplyShirtless
             }
         }
         
+        /// <summary>
+        /// Retrieves the path for the modded torso image based on the chosen sprite option.
+        /// </summary>
+        /// <param name="isBald">Specifies whether the required sprite should be bald.</param>
+        /// <returns>
+        /// Returns the file path for the torso image corresponding to the selected sprite option.
+        /// Defaults to the Toned sprite if the chosen sprite option is unavailable.
+        /// </returns>
         private string GetModdedTorso(bool isBald = false)
         {
             var bald = "";
