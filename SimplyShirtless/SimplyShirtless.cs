@@ -14,14 +14,28 @@ namespace SimplyShirtless
     {
         private static ModConfig _config;
         private readonly IMonitor _monitor;
+        private readonly string _baldTarget;
+        private readonly string _hairyTarget;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
 
-        public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config) {
+        public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config)
+        {
             _config = config;
             _monitor = monitor;
+            _baldTarget = "Characters/Farmer/farmer_base_bald";
+            _hairyTarget = "Characters/Farmer/farmer_base";
+            
             helper.Events.Content.AssetRequested += this.RemoveShirt;
             helper.Events.Content.AssetRequested += this.ReplaceTorso;
+            helper.Events.Display.RenderingActiveMenu += this.IsCreateFarmerMenuActive;
+        }
+
+        private void IsCreateFarmerMenuActive(object sender, RenderingActiveMenuEventArgs e)
+        {
+            //if (e.ToString() is null) return;
+            //_monitor.Log(e.ToString(), LogLevel.Error);
+            //TODO: Farmer creation menu does not render sleeves. Possibly due to Farmer.shirtItem being null.
         }
         
         /// <summary>
@@ -59,14 +73,31 @@ namespace SimplyShirtless
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
             if (!_config.ModToggle) return;
-            if (!IsAssetTarget(e, "Characters/Farmer/farmer_base")) return;
-            e.LoadFromModFile<Texture2D>("assets/flat.png", AssetLoadPriority.Medium);
+            if (IsAssetTarget(e, _hairyTarget))
+            {
+                e.LoadFromModFile<Texture2D>(GetModdedTorso(), AssetLoadPriority.Medium);
+            } else if (IsAssetTarget(e, _baldTarget))
+            {
+                e.LoadFromModFile<Texture2D>(GetModdedTorso(isBald: true), AssetLoadPriority.Medium);
+            }
+        }
+        
+        private string GetModdedTorso(bool isBald = false)
+        {
+            var bald = "";
+            if (isBald) bald = "_bald";
+            if (_config.Sprite == 0) return $"assets/male/flat{bald}.png";
+            if (_config.Sprite == 1) return $"assets/male/toned{bald}.png";
+            if (_config.Sprite == 2) return $"assets/male/sculpted{bald}.png";
+
+            _monitor.Log("Chosen Sprite option not available. Defaulting to Toned.", LogLevel.Warn);
+            return $"assets/male/toned{bald}.png";
         }
 
         private static bool IsAssetTarget(AssetRequestedEventArgs e, string target)
         {
             return e.NameWithoutLocale.IsEquivalentTo(target);
-        }
+        }   
 
         /// <summary>
         /// Generates a blank Texture2D of specified width and height with transparent pixels.
