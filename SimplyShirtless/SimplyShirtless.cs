@@ -13,21 +13,30 @@ namespace SimplyShirtless
     public class SimplyShirtless
     {
         private static ModConfig _config;
+        private static IModHelper _helper;
         private static IMonitor _monitor;
         private readonly string _baldTarget;
         private readonly string _hairyTarget;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
+        private readonly List<string> _patchedAssets = new()
+        {
+            "Characters/Farmer/shirts",
+            "Characters/Farmer/farmer_base",
+            "Characters/Farmer/farmer_base_bald"
+        };
 
         public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config)
         {
             _config = config;
+            _helper = helper;
             _monitor = monitor;
             _baldTarget = "Characters/Farmer/farmer_base_bald";
             _hairyTarget = "Characters/Farmer/farmer_base";
             
-            helper.Events.Content.AssetRequested += this.RemoveShirt;
-            helper.Events.Content.AssetRequested += this.ReplaceTorso;
+            helper.Events.Content.AssetRequested += RemoveShirt;
+            helper.Events.Content.AssetRequested += ReplaceTorso;
+            helper.Events.GameLoop.SaveLoaded += InvalidateAssets;
         }
         
         /// <summary>
@@ -64,13 +73,13 @@ namespace SimplyShirtless
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
             if (!_config.ModToggle) return;
-            if (IsAssetTarget(e, _hairyTarget))
-            {
+            var isTargetHairy = IsAssetTarget(e, _hairyTarget);
+            var isTargetBald = IsAssetTarget(e, _baldTarget);
+
+            if (isTargetHairy)
                 e.LoadFromModFile<Texture2D>(GetModdedTorso(), AssetLoadPriority.Medium);
-            } else if (IsAssetTarget(e, _baldTarget))
-            {
+            if (isTargetBald) 
                 e.LoadFromModFile<Texture2D>(GetModdedTorso(isBald: true), AssetLoadPriority.Medium);
-            }
         }
         
         /// <summary>
@@ -83,12 +92,17 @@ namespace SimplyShirtless
         /// </returns>
         private string GetModdedTorso(bool isBald = false)
         {
-            var bald = "";
-            if (isBald) bald = "_bald";
-            if (_config.Sprite == 0) return $"assets/male/flat{bald}.png";
-            if (_config.Sprite == 1) return $"assets/male/toned{bald}.png";
-            if (_config.Sprite == 2) return $"assets/male/sculpted{bald}.png";
-
+            var bald = isBald ? "_bald" : "";
+            string[] torsoOptions =
+            {
+                $"assets/male/flat{bald}.png",
+                $"assets/male/toned{bald}.png",
+                //$"assets/male/sculpted{bald}.png"
+            };
+            
+            var validOption = (_config.Sprite >= 0 && _config.Sprite < torsoOptions.Length);
+            if (validOption) return torsoOptions[_config.Sprite];
+            
             _monitor.Log("Chosen Sprite option not available. Defaulting to Toned.", LogLevel.Warn);
             return $"assets/male/toned{bald}.png";
         }
@@ -111,6 +125,22 @@ namespace SimplyShirtless
             Array.Fill(data, Color.Transparent);
             blankTexture.SetData(data);
             return blankTexture;
+        }
+
+        /// <summary>
+        /// Invalidates the cache for the target assets in the `_patchedAssets` list. Used to reload or update textures.
+        /// </summary>
+        private void InvalidateAssets(object sender, SaveLoadedEventArgs e)
+        {
+            var currentLocale =
+                _helper.GameContent.CurrentLocale != "" ? "." + _helper.GameContent.CurrentLocale : "";
+
+            foreach (var asset in _patchedAssets)
+            {
+                _helper.GameContent.InvalidateCache(asset);
+                _helper.GameContent.InvalidateCache(asset + currentLocale);
+            }
+            _monitor.Log(I18n.InvalidationNote(), LogLevel.Debug);
         }
     }
 }

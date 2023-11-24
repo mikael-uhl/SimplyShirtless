@@ -6,6 +6,5 @@ namespace SimplyShirtless.frameworks
         public bool FemaleToggle { get; set; } = true;
         public int Sprite { get; set; } = 1;
         public int MultiplayerSprite { get; set; } = 1;
-
     }
 }

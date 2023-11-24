@@ -11,5 +11,7 @@
   "tooltip-female-sprite": "Substitui a camisa de baixo feminina pelo Bikini de Praia.",
   "flat": "Tábua",
   "toned": "Definido",
-  "sculpted": "Esculpido"
+  "sculpted": "Esculpido",
+
+  "invalidation-note": "É normal que recursos sejam invalidados duas vezes, isso faz parte do funcionamento do mod e às vezes, um recurso similar pode falhar em ser invalidado logo em seguida. Se notar isso no log ou de outra forma, não se preocupe, não é necessariamente um erro."
 }

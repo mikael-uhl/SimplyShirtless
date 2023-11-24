@@ -72,7 +72,7 @@ namespace SimplyShirtless.frameworks
                 tooltip: () => I18n.TooltipSprite(),
                 getValue: () => _config.Sprite.ToString(),
                 setValue: value => _config.Sprite = int.Parse(value),
-                allowedValues: new[] { "0", "1", "2" },
+                allowedValues: new[] { "0", "1" },
                 formatAllowedValue: value => FormatAllowedValues(value)
             );
             
@@ -83,7 +83,7 @@ namespace SimplyShirtless.frameworks
                 tooltip: () => I18n.TooltipMultiplayerSprite(),
                 getValue: () => _config.MultiplayerSprite.ToString(),
                 setValue: value => _config.MultiplayerSprite = int.Parse(value),
-                allowedValues: new[] { "0", "1", "2" },
+                allowedValues: new[] { "0", "1" },
                 formatAllowedValue: value => FormatAllowedValues(value)
             );
         }
@@ -106,7 +106,7 @@ namespace SimplyShirtless.frameworks
             return value switch {
                 "0" => I18n.Flat(),
                 "1" => I18n.Toned(),
-                "2" => I18n.Sculpted(),
+                //"2" => I18n.Sculpted(),
                 _ => value
             };
         }
