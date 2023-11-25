@@ -20,6 +20,11 @@ namespace SimplyShirtless
                 original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetShirtExtraData)),
                 prefix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.GetShirtExtraData_Prefix))
             );
+            harmony.Patch
+            (
+                original: typeof(FarmerRenderer).GetConstructor(new[] { typeof(string), typeof(Farmer) }),
+                postfix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.FarmerRenderer_Postfix))
+            );
         }
     }
 }
