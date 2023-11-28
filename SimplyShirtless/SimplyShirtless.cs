@@ -10,13 +10,14 @@ using SimplyShirtless.frameworks;
 
 namespace SimplyShirtless
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Names provided by Harmony")]
     public class SimplyShirtless
     {
         private static ModConfig _config;
         private static IModHelper _helper;
         private static IMonitor _monitor;
-        private readonly string _baldTarget;
-        private readonly string _hairyTarget;
+        private static string _baldTarget;
+        private static string _hairyTarget;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
         private readonly List<string> _patchedAssets = new()
@@ -49,12 +50,18 @@ namespace SimplyShirtless
         /// <param name="__instance">The Farmer instance provided by Harmony.</param>
         /// <param name="__result">The resulting list of extra data for the shirt provided by Harmony.</param>
         /// <returns>Returns whether to skip the original method (false) or continue executing it (true).</returns>
-        [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Names provided by Harmony")]
         public static bool GetShirtExtraData_Prefix(Farmer __instance, ref List<string> __result)
         {
             if (!_config.ModToggle || __instance.shirtItem.Value != null || __instance.shirt.Value >= 0) return true;
             __result ??= new List<string>();
             __result.Add("Sleeveless");
+            return false;
+        }
+        
+        public static bool FarmerRenderer_Postfix(FarmerRenderer __instance, string textureName, Farmer farmer)
+        {
+            if (farmer.IsLocalPlayer) return true;
+            __instance.textureName.Set(GetModdedTorso(isBald: farmer.IsBaldHairStyle(farmer.getHair())));
             return false;
         }
 
@@ -78,7 +85,7 @@ namespace SimplyShirtless
 
             if (isTargetHairy)
                 e.LoadFromModFile<Texture2D>(GetModdedTorso(), AssetLoadPriority.Medium);
-            if (isTargetBald) 
+            if (isTargetBald)
                 e.LoadFromModFile<Texture2D>(GetModdedTorso(isBald: true), AssetLoadPriority.Medium);
         }
         
@@ -90,7 +97,7 @@ namespace SimplyShirtless
         /// Returns the file path for the torso image corresponding to the selected sprite option.
         /// Defaults to the Toned sprite if the chosen sprite option is unavailable.
         /// </returns>
-        private string GetModdedTorso(bool isBald = false)
+        private static string GetModdedTorso(bool isBald = false)
         {
             var bald = isBald ? "_bald" : "";
             string[] torsoOptions =
