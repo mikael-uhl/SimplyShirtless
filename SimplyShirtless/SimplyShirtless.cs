@@ -58,11 +58,13 @@ namespace SimplyShirtless
             return false;
         }
         
-        public static bool FarmerRenderer_Postfix(FarmerRenderer __instance, string textureName, Farmer farmer)
+        public static void FarmerRenderer_Postfix(FarmerRenderer __instance, string textureName, Farmer farmer)
         {
-            if (farmer.IsLocalPlayer) return true;
-            __instance.textureName.Set(GetModdedTorso(isBald: farmer.IsBaldHairStyle(farmer.getHair())));
-            return false;
+            if (!Game1.hasLoadedGame || farmer.IsLocalPlayer) return;
+            __instance.textureName.Set(GetModdedTorso(
+                isBald: farmer.IsBaldHairStyle(farmer.getHair()),
+                forMultiplayer: true));
+            _monitor.Log("Tentativa de troca de torso multiplayer ocorrida", LogLevel.Error);
         }
 
         private void RemoveShirt(object sender, AssetRequestedEventArgs e)
@@ -90,14 +92,16 @@ namespace SimplyShirtless
         }
         
         /// <summary>
-        /// Retrieves the path for the modded torso image based on the chosen sprite option.
+        /// Retrieves the path for the modded torso image based on the chosen single player sprite option and
+        /// multiplayer option.
         /// </summary>
         /// <param name="isBald">Specifies whether the required sprite should be bald.</param>
+        /// <param name="forMultiplayer">Specifies whether the required sprite is for multiplayer.</param>
         /// <returns>
         /// Returns the file path for the torso image corresponding to the selected sprite option.
         /// Defaults to the Toned sprite if the chosen sprite option is unavailable.
         /// </returns>
-        private static string GetModdedTorso(bool isBald = false)
+        private static string GetModdedTorso(bool isBald = false, bool forMultiplayer = false)
         {
             var bald = isBald ? "_bald" : "";
             string[] torsoOptions =
@@ -106,12 +110,19 @@ namespace SimplyShirtless
                 $"assets/male/toned{bald}.png",
                 //$"assets/male/sculpted{bald}.png"
             };
+
+            var chosenSprite = forMultiplayer ? _config.MultiplayerSprite : _config.Sprite;
+            var validOption = IsSpriteOptionValid(chosenSprite, torsoOptions.Length);
             
-            var validOption = (_config.Sprite >= 0 && _config.Sprite < torsoOptions.Length);
-            if (validOption) return torsoOptions[_config.Sprite];
-            
+            if (validOption) return torsoOptions[chosenSprite];
+
             _monitor.Log("Chosen Sprite option not available. Defaulting to Toned.", LogLevel.Warn);
             return $"assets/male/toned{bald}.png";
+        }
+        
+        private static bool IsSpriteOptionValid(int sprite, int torsoOptionsLength)
+        {
+            return sprite >= 0 && sprite < torsoOptionsLength;
         }
 
         private static bool IsAssetTarget(AssetRequestedEventArgs e, string target)
@@ -147,7 +158,7 @@ namespace SimplyShirtless
                 _helper.GameContent.InvalidateCache(asset);
                 _helper.GameContent.InvalidateCache(asset + currentLocale);
             }
-            _monitor.Log(I18n.InvalidationNote(), LogLevel.Debug);
+            _monitor.Log(I18n.InvalidationNote());
         }
     }
 }
