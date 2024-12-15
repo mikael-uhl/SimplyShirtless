@@ -13,64 +13,61 @@ namespace SimplyShirtless
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Names provided by Harmony")]
     public class SimplyShirtless
     {
-        private static ModConfig _config;
         private static IModHelper _helper;
         private static IMonitor _monitor;
-        private static string _baldTarget;
-        private static string _hairyTarget;
+        private readonly ModConfig _config;
         private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
         private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
-        private readonly List<string> _patchedAssets = new()
+        private enum TorsoSprite
         {
-            "Characters/Farmer/shirts",
-            "Characters/Farmer/farmer_base",
-            "Characters/Farmer/farmer_base_bald"
+            Flat,
+            Toned,
+            //Sculpted,
+        }
+
+        private readonly Dictionary<string, string> _patchedAssets = new()
+        {
+            { "shirts", "Characters/Farmer/shirts" },
+            { "hairy", "Characters/Farmer/farmer_base" },
+            { "bald", "Characters/Farmer/farmer_base_bald" }
         };
 
         public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config)
         {
-            _config = config;
             _helper = helper;
             _monitor = monitor;
-            _baldTarget = "Characters/Farmer/farmer_base_bald";
-            _hairyTarget = "Characters/Farmer/farmer_base";
-            
+            _config = config;
+
             helper.Events.Content.AssetRequested += RemoveShirt;
             helper.Events.Content.AssetRequested += ReplaceTorso;
             helper.Events.GameLoop.SaveLoaded += InvalidateAssets;
         }
-        
+
         /// <summary>
-        /// Prefix method rewriting shirt's extra data in the Farmer class.
-        /// Adds "Sleeveless" to the shirt's extra data if shirt is unequipped and player is not creating a farmer.
-        /// This is necessary since the fallback shirt never has the extra data found in Data/ClothingInformation.json
-        /// (even after manually writing). Hence this forcing method.
-        /// See stardewvalleywiki.com/Modding:Modder_Guide/APIs/Harmony
+        /// Prefix method that overrides the behavior of checking if a shirt has sleeves in the Farmer class.
+        /// Returns <c>false</c> if no shirt is equipped, indicating the shirt has no sleeves.
+        /// If a shirt is equipped, it replicates the original method's behavior (i.e., <c>__result</c> is not <c>false</c>).
+        /// This is necessary since the fallback shirt is hardcoded to always have sleeves.
+        /// See <a href="https://stardewvalleywiki.com/Modding:Modder_Guide/APIs/Harmony">Stardew Valley Wiki: Harmony</a>.
         /// </summary>
         /// <param name="__instance">The Farmer instance provided by Harmony.</param>
-        /// <param name="__result">The resulting list of extra data for the shirt provided by Harmony.</param>
+        /// <param name="__result">The resulting boolean indicating whether the shirt has sleeves or not.</param>
         /// <returns>Returns whether to skip the original method (false) or continue executing it (true).</returns>
-        public static bool GetShirtExtraData_Prefix(Farmer __instance, ref List<string> __result)
+        public static bool ShirtHasSleeves_Prefix(ref bool __result, Farmer __instance)
         {
-            if (!_config.ModToggle || __instance.shirtItem.Value != null || __instance.shirt.Value >= 0) return true;
-            __result ??= new List<string>();
-            __result.Add("Sleeveless");
+            if (!IsModEnabled()) return true;
+            string id = __instance.IsOverridingShirt(out var overrideId)
+                ? overrideId
+                : __instance.shirtItem?.Value?.ItemId;
+
+            __result = id != null && Game1.shirtData.TryGetValue(id, out var shirtData) && shirtData.HasSleeves;
             return false;
-        }
-        
-        public static void FarmerRenderer_Postfix(FarmerRenderer __instance, string textureName, Farmer farmer)
-        {
-            if (!Game1.hasLoadedGame || farmer.IsLocalPlayer) return;
-            __instance.textureName.Set(GetModdedTorso(
-                isBald: farmer.IsBaldHairStyle(farmer.getHair()),
-                forMultiplayer: true));
-            _monitor.Log("Tentativa de troca de torso multiplayer ocorrida", LogLevel.Error);
         }
 
         private void RemoveShirt(object sender, AssetRequestedEventArgs e)
         {
-            if (!_config.ModToggle) return;
-            if (!IsAssetTarget(e, "Characters/Farmer/shirts")) return;
+            if (!IsModEnabled()) return;
+            if (!IsAssetTarget(e, _patchedAssets["shirts"])) return;
             e.Edit(asset =>
             {
                 var editor = asset.AsImage();
@@ -81,9 +78,9 @@ namespace SimplyShirtless
         
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
-            if (!_config.ModToggle) return;
-            var isTargetHairy = IsAssetTarget(e, _hairyTarget);
-            var isTargetBald = IsAssetTarget(e, _baldTarget);
+            if (!IsModEnabled()) return;
+            var isTargetHairy = IsAssetTarget(e, _patchedAssets["hairy"]);
+            var isTargetBald = IsAssetTarget(e, _patchedAssets["bald"]);
 
             if (isTargetHairy)
                 e.LoadFromModFile<Texture2D>(GetModdedTorso(), AssetLoadPriority.Medium);
@@ -101,33 +98,44 @@ namespace SimplyShirtless
         /// Returns the file path for the torso image corresponding to the selected sprite option.
         /// Defaults to the Toned sprite if the chosen sprite option is unavailable.
         /// </returns>
-        private static string GetModdedTorso(bool isBald = false, bool forMultiplayer = false)
+        private string GetModdedTorso(bool isBald = false, bool forMultiplayer = false)
         {
             var bald = isBald ? "_bald" : "";
-            string[] torsoOptions =
-            {
-                $"assets/male/flat{bald}.png",
-                $"assets/male/toned{bald}.png",
-                //$"assets/male/sculpted{bald}.png"
-            };
-
-            var chosenSprite = forMultiplayer ? _config.MultiplayerSprite : _config.Sprite;
-            var validOption = IsSpriteOptionValid(chosenSprite, torsoOptions.Length);
+            var torsoOption =
+                GetTorsoOption(forMultiplayer ? _config.MultiplayerSprite : _config.Sprite, bald);
+            if (torsoOption != null) return torsoOption;
             
-            if (validOption) return torsoOptions[chosenSprite];
-
             _monitor.Log("Chosen Sprite option not available. Defaulting to Toned.", LogLevel.Warn);
-            return $"assets/male/toned{bald}.png";
+            return GetTorsoOption(1, bald);
         }
         
-        private static bool IsSpriteOptionValid(int sprite, int torsoOptionsLength)
+        /// <summary>
+        /// Retrieves the torso option based on the specified sprite index and bald setting.
+        /// </summary>
+        /// <param name="spriteIndex">The index representing the chosen torso sprite.</param>
+        /// <param name="bald">Specifies whether the required sprite should be bald.</param>
+        /// <returns>
+        /// Returns the file path for the torso image corresponding to the selected sprite index and bald setting.
+        /// Returns null if the chosen sprite index is unavailable.
+        /// </returns>
+        private static string GetTorsoOption(int spriteIndex, string bald)
         {
-            return sprite >= 0 && sprite < torsoOptionsLength;
+            return (TorsoSprite)spriteIndex switch
+            {
+                TorsoSprite.Flat => $"assets/male/flat{bald}.png",
+                TorsoSprite.Toned => $"assets/male/toned{bald}.png",
+                _ => null
+            };
         }
 
         private static bool IsAssetTarget(AssetRequestedEventArgs e, string target)
         {
             return e.NameWithoutLocale.IsEquivalentTo(target);
+        }
+
+        private static bool IsModEnabled()
+        {
+            return _helper.ReadConfig<ModConfig>().ModToggle;
         }
 
         /// <summary>
@@ -148,17 +156,12 @@ namespace SimplyShirtless
         /// <summary>
         /// Invalidates the cache for the target assets in the `_patchedAssets` list. Used to reload or update textures.
         /// </summary>
-        private void InvalidateAssets(object sender, SaveLoadedEventArgs e)
+        public void InvalidateAssets(object sender = null, SaveLoadedEventArgs e = null)
         {
-            var currentLocale =
-                _helper.GameContent.CurrentLocale != "" ? "." + _helper.GameContent.CurrentLocale : "";
-
-            foreach (var asset in _patchedAssets)
+            foreach (var asset in _patchedAssets.Values)
             {
                 _helper.GameContent.InvalidateCache(asset);
-                _helper.GameContent.InvalidateCache(asset + currentLocale);
             }
-            _monitor.Log(I18n.InvalidationNote());
         }
     }
 }

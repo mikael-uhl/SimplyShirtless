@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HarmonyLib;
 using SimplyShirtless.frameworks;
 using StardewModdingAPI;
@@ -12,18 +13,13 @@ namespace SimplyShirtless
         {
             _config = Helper.ReadConfig<ModConfig>();
             I18n.Init(helper.Translation);
-            _ = new SimplyShirtless(helper, Monitor, _config);
-            _ = new CreateMenu(helper, ModManifest, Monitor, _config);
+            var simplyShirtless = new SimplyShirtless(helper, Monitor, _config);
+            _ = new CreateMenu(helper, ModManifest, Monitor, simplyShirtless, _config);
             var harmony = new Harmony(ModManifest.UniqueID);
             harmony.Patch
             (
-                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetShirtExtraData)),
-                prefix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.GetShirtExtraData_Prefix))
-            );
-            harmony.Patch
-            (
-                original: typeof(FarmerRenderer).GetConstructor(new[] { typeof(string), typeof(Farmer) }),
-                postfix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.FarmerRenderer_Postfix))
+                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.ShirtHasSleeves)),
+                prefix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.ShirtHasSleeves_Prefix))
             );
         }
     }

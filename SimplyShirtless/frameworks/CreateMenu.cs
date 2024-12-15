@@ -10,21 +10,16 @@ namespace SimplyShirtless.frameworks
         private readonly IModHelper _helper;
         private readonly IManifest _modManifest;
         private readonly IMonitor _monitor;
-        private  ModConfig _config;
+        private readonly SimplyShirtless _simplyShirtless;
+        private ModConfig _config;
         
-        private readonly List<string> _patchedAssets = new()
-        {
-            "Characters/Farmer/shirts",
-            "Characters/Farmer/farmer_base",
-            "Characters/Farmer/farmer_base_bald"
-        };
-        
-        public CreateMenu(IModHelper helper, IManifest modManifest, IMonitor monitor, ModConfig config)
+        public CreateMenu(IModHelper helper, IManifest modManifest, IMonitor monitor, SimplyShirtless simplyShirtless, ModConfig config)
         {
             _monitor = monitor;
             _helper = helper;
             _config = config;
             _modManifest = modManifest;
+            _simplyShirtless = simplyShirtless;
             _helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         }
         
@@ -91,14 +86,7 @@ namespace SimplyShirtless.frameworks
         private void CommitConfig()
         {
             _helper.WriteConfig(_config);
-            var currentLocale = _helper.GameContent.CurrentLocale != "" ? 
-                "." + _helper.GameContent.CurrentLocale : "";
-
-            foreach (var path in _patchedAssets)
-            {
-                _helper.GameContent.InvalidateCache(path);
-                _helper.GameContent.InvalidateCache(path + currentLocale);
-            }
+            _simplyShirtless.InvalidateAssets();
         }
 
         private static string FormatAllowedValues(string value)
