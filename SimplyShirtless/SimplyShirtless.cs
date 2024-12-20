@@ -70,7 +70,7 @@ namespace SimplyShirtless
             }
             catch (Exception ex)
             {
-                _monitor.Log($"Failed in {nameof(ShirtHasSleeves_Prefix)} while removing the sleeves. Please report at nexusmods.com/stardewvalley/mods/19282:\n{ex}", LogLevel.Error);
+                _monitor.Log($"Failed in {nameof(ShirtHasSleeves_Prefix)} while removing the sleeves. Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
                 return true;
             }
         }
@@ -97,7 +97,7 @@ namespace SimplyShirtless
             }
             catch (Exception ex)
             {
-                _monitor.Log($"Failed in {nameof(GetDisplayShirt_Postfix)} while replacing the shirt texture:\n{ex}", LogLevel.Error);
+                _monitor.Log($"Failed in {nameof(GetDisplayShirt_Postfix)} while replacing the shirt texture: Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
             }
         }
         
