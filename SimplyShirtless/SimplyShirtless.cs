@@ -52,19 +52,27 @@ namespace SimplyShirtless
         /// <returns>Returns whether to skip the original method (false) or continue executing it (true).</returns>
         public static bool ShirtHasSleeves_Prefix(ref bool __result, Farmer __instance)
         {
-            if (!IsModEnabled()) return true;
-            if (ShouldForceSleeves(__instance))
+            try
             {
-                __result = true;
+                if (!IsModEnabled()) return true;
+                if (ShouldForceSleeves(__instance))
+                {
+                    __result = true;
+                    return false;
+                }
+
+                var id = __instance.IsOverridingShirt(out var overrideId)
+                    ? overrideId
+                    : __instance.shirtItem?.Value?.ItemId;
+
+                __result = id != null && Game1.shirtData.TryGetValue(id, out var shirtData) && shirtData.HasSleeves;
                 return false;
             }
-
-            var id = __instance.IsOverridingShirt(out var overrideId)
-                ? overrideId
-                : __instance.shirtItem?.Value?.ItemId;
-
-            __result = id != null && Game1.shirtData.TryGetValue(id, out var shirtData) && shirtData.HasSleeves;
-            return false;
+            catch (Exception ex)
+            {
+                _monitor.Log($"Failed in {nameof(ShirtHasSleeves_Prefix)} while removing the sleeves. Please report at nexusmods.com/stardewvalley/mods/19282:\n{ex}", LogLevel.Error);
+                return true;
+            }
         }
 
         /// <summary>
@@ -76,14 +84,21 @@ namespace SimplyShirtless
         /// <param name="spriteIndex">The sprite index of the shirt to be displayed.</param>
         public static void GetDisplayShirt_Postfix(Farmer __instance, ref Texture2D texture, ref int spriteIndex)
         {
-            if (!IsModEnabled() || __instance.IsOverridingShirt(out _) || __instance.shirtItem.Value != null) 
-                return;
+            try
+            {
+                if (!IsModEnabled() || __instance.IsOverridingShirt(out _) || __instance.shirtItem.Value != null) 
+                    return;
 
-            if (Game1.hasLoadedGame && !__instance.IsLocalPlayer &&
-                (!Game1.IsMultiplayer || !IsMultiplayerEnabled() || __instance.IsLocalPlayer)) return;
+                if (Game1.hasLoadedGame && !__instance.IsLocalPlayer &&
+                    (!Game1.IsMultiplayer || !IsMultiplayerEnabled() || __instance.IsLocalPlayer)) return;
             
-            texture = NewBlankTexture(256, 8);
-            spriteIndex = 0;
+                texture = NewBlankTexture(256, 8);
+                spriteIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"Failed in {nameof(GetDisplayShirt_Postfix)} while replacing the shirt texture:\n{ex}", LogLevel.Error);
+            }
         }
         
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
