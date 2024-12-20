@@ -1,9 +1,9 @@
 {
   "Name": "Simply Shirtless",
-  "Author": "Brukob",
+  "Author": "JhonnieRandler & Brukob",
   "Version": "1.0.0",
   "Description": "Removes the fallback shirt.",
-  "UniqueID": "Brukob.SimplyShirtless",
+  "UniqueID": "JhonnieMike.SimplyShirtless",
   "EntryDll": "SimplyShirtless.dll",
   "MinimumApiVersion": "3.18.3",
   "UpdateKeys": [

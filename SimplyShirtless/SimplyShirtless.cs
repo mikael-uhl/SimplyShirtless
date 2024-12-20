@@ -16,8 +16,6 @@ namespace SimplyShirtless
         private static IModHelper _helper;
         private static IMonitor _monitor;
         private readonly ModConfig _config;
-        private static readonly Rectangle ShirtArea = new(8, 416, 8, 32);
-        private static readonly Rectangle ShoulderArea = new(136, 416, 8, 32);
         private enum TorsoSprite
         {
             Flat,
@@ -38,14 +36,13 @@ namespace SimplyShirtless
             _monitor = monitor;
             _config = config;
 
-            helper.Events.Content.AssetRequested += RemoveShirt;
             helper.Events.Content.AssetRequested += ReplaceTorso;
             helper.Events.GameLoop.SaveLoaded += InvalidateAssets;
         }
 
         /// <summary>
         /// Prefix method that overrides the behavior of checking if a shirt has sleeves in the Farmer class.
-        /// Returns <c>false</c> if no shirt is equipped, indicating the shirt has no sleeves.
+        /// Returns (__result is) <c>false</c> if no shirt is equipped, indicating the shirt has no sleeves.
         /// If a shirt is equipped, it replicates the original method's behavior (i.e., <c>__result</c> is not <c>false</c>).
         /// This is necessary since the fallback shirt is hardcoded to always have sleeves.
         /// See <a href="https://stardewvalleywiki.com/Modding:Modder_Guide/APIs/Harmony">Stardew Valley Wiki: Harmony</a>.
@@ -56,7 +53,13 @@ namespace SimplyShirtless
         public static bool ShirtHasSleeves_Prefix(ref bool __result, Farmer __instance)
         {
             if (!IsModEnabled()) return true;
-            string id = __instance.IsOverridingShirt(out var overrideId)
+            if (ShouldForceSleeves(__instance))
+            {
+                __result = true;
+                return false;
+            }
+
+            var id = __instance.IsOverridingShirt(out var overrideId)
                 ? overrideId
                 : __instance.shirtItem?.Value?.ItemId;
 
@@ -64,16 +67,23 @@ namespace SimplyShirtless
             return false;
         }
 
-        private void RemoveShirt(object sender, AssetRequestedEventArgs e)
+        /// <summary>
+        /// Postfix method that overrides the fallback shirt texture with a blank asset when no shirt is equipped,
+        /// and the farmer is either the local player or an online player with multiplayer settings enabled.
+        /// </summary>
+        /// <param name="__instance">The Farmer instance provided by Harmony.</param>
+        /// <param name="texture">The texture of the shirt to be displayed.</param>
+        /// <param name="spriteIndex">The sprite index of the shirt to be displayed.</param>
+        public static void GetDisplayShirt_Postfix(Farmer __instance, ref Texture2D texture, ref int spriteIndex)
         {
-            if (!IsModEnabled()) return;
-            if (!IsAssetTarget(e, _patchedAssets["shirts"])) return;
-            e.Edit(asset =>
-            {
-                var editor = asset.AsImage();
-                editor.PatchImage(NewBlankTexture(), targetArea: ShirtArea);
-                editor.PatchImage(NewBlankTexture(), targetArea: ShoulderArea);
-            });
+            if (!IsModEnabled() || __instance.IsOverridingShirt(out _) || __instance.shirtItem.Value != null) 
+                return;
+
+            if (Game1.hasLoadedGame && !__instance.IsLocalPlayer &&
+                (!Game1.IsMultiplayer || !IsMultiplayerEnabled() || __instance.IsLocalPlayer)) return;
+            
+            texture = NewBlankTexture(256, 8);
+            spriteIndex = 0;
         }
         
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
@@ -127,6 +137,19 @@ namespace SimplyShirtless
                 _ => null
             };
         }
+        /// <summary>
+        /// Ensures that when multiplayer is disabled and an online player has no shirt, they are forced to have a shirt with sleeves.
+        /// This allows the local player to remain without sleeves, while online players are still forced to have sleeves when shirtless.
+        /// </summary>
+        /// <param name="farmer">The Farmer instance to check the conditions for.</param>
+        /// <returns><c>true</c> if the farmer should be forced to have sleeves; otherwise, <c>false</c>.</returns>
+        private static bool ShouldForceSleeves(Farmer farmer)
+        {
+            return !farmer.IsLocalPlayer 
+                   && !IsMultiplayerEnabled() 
+                   && farmer.shirtItem?.Value == null 
+                   && Game1.hasLoadedGame;
+        }
 
         private static bool IsAssetTarget(AssetRequestedEventArgs e, string target)
         {
@@ -136,6 +159,11 @@ namespace SimplyShirtless
         private static bool IsModEnabled()
         {
             return _helper.ReadConfig<ModConfig>().ModToggle;
+        }
+        
+        private static bool IsMultiplayerEnabled()
+        {
+            return _helper.ReadConfig<ModConfig>().Multiplayer;
         }
 
         /// <summary>

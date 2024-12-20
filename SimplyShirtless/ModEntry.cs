@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HarmonyLib;
 using SimplyShirtless.frameworks;
 using StardewModdingAPI;
@@ -20,6 +19,11 @@ namespace SimplyShirtless
             (
                 original: AccessTools.Method(typeof(Farmer), nameof(Farmer.ShirtHasSleeves)),
                 prefix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.ShirtHasSleeves_Prefix))
+            );
+            harmony.Patch
+            (
+                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetDisplayShirt)),
+                postfix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.GetDisplayShirt_Postfix))
             );
         }
     }

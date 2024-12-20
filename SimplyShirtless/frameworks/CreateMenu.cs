@@ -71,6 +71,15 @@ namespace SimplyShirtless.frameworks
                 formatAllowedValue: value => FormatAllowedValues(value)
             );
             
+            configMenuApi.AddBoolOption
+            (
+                mod: _modManifest,
+                name: () => I18n.TitleMultiplayer(),
+                tooltip: () => I18n.TooltipMultiplayer(),
+                getValue: () => _config.Multiplayer,
+                setValue: value => _config.Multiplayer = value
+            );
+            
             configMenuApi.AddTextOption
             (
                 mod: _modManifest,
