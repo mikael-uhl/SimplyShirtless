@@ -6,7 +6,9 @@ A mod for Stardew Valley that removes the undershirt and allows going shirtless.
 - Makes use of the player's skin color to color the sleeves.
 - Automatically removes the sleeve if shirtless (the reason for this mod).
 - Works for both single player and multiplayer.
-- Includes female model. Covered by the Island Bikini sprite.
+- Includes female model. Covered by the Island Bikini sprite. (WIP)
+- Add alternative torso texture option.
+
 
 ## Usage
 1. Install the latest version of SMAPI.
@@ -14,12 +16,12 @@ A mod for Stardew Valley that removes the undershirt and allows going shirtless.
 3. Run the game using SMAPI.
 
 ## Todo
-- Add alternative torso texture option (in progress).
-- Fix pixels that look out of place after going shirtless (consult \[CP\] NoShirt, in progress).
-- Add support for GMCM (in progress)
+- Support for female model.
+- Fetch online players sprite preferences.
+- Add third torso option.
 
 ## Compatibility
-- Compatible with Stardew Valley 1.5+ on Windows, Linux, and Mac.
+- Compatible with Stardew Valley 1.6+ on Windows, Linux, and Mac.
 - Multiplayer support.
 
 ## Credits
