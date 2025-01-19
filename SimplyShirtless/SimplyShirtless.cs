@@ -25,11 +25,12 @@ namespace SimplyShirtless
 
         private readonly Dictionary<string, string> _patchedAssets = new()
         {
-            { "shirts", "Characters/Farmer/shirts" },
             { "hairy", "Characters/Farmer/farmer_base" },
-            { "bald", "Characters/Farmer/farmer_base_bald" }
+            { "bald", "Characters/Farmer/farmer_base_bald" },
+            { "hairy_girl", "Characters/Farmer/farmer_girl_base" },
+            { "bald_girl", "Characters/Farmer/farmer_girl_base_bald" },
         };
-
+        
         public SimplyShirtless(IModHelper helper, IMonitor monitor, ModConfig config)
         {
             _helper = helper;
@@ -50,15 +51,14 @@ namespace SimplyShirtless
         /// <param name="__instance">The Farmer instance provided by Harmony.</param>
         /// <param name="__result">The resulting boolean indicating whether the shirt has sleeves or not.</param>
         /// <returns>Returns whether to skip the original method (false) or continue executing it (true).</returns>
-        public static bool ShirtHasSleeves_Prefix(ref bool __result, Farmer __instance)
+        public static void ShirtHasSleeves_Postfix(ref bool __result, Farmer __instance)
         {
             try
             {
-                if (!IsModEnabled()) return true;
+                if (!IsModEnabled()) return;
                 if (ShouldForceSleeves(__instance))
                 {
                     __result = true;
-                    return false;
                 }
 
                 var id = __instance.IsOverridingShirt(out var overrideId)
@@ -66,18 +66,18 @@ namespace SimplyShirtless
                     : __instance.shirtItem?.Value?.ItemId;
 
                 __result = id != null && Game1.shirtData.TryGetValue(id, out var shirtData) && shirtData.HasSleeves;
-                return false;
             }
             catch (Exception ex)
             {
-                _monitor.Log($"Failed in {nameof(ShirtHasSleeves_Prefix)} while removing the sleeves. Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
-                return true;
+                _monitor.Log($"Failed in {nameof(ShirtHasSleeves_Postfix)} while removing the sleeves. " +
+                             $"Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
             }
         }
 
         /// <summary>
-        /// Postfix method that overrides the fallback shirt texture with a blank asset when no shirt is equipped,
-        /// and the farmer is either the local player or an online player with multiplayer settings enabled.
+        /// Postfix method that either overrides the fallback shirt texture with a blank asset (male),
+        /// or simply returns a different shirt id (female) when no shirt is equipped and the farmer is
+        /// either the local player or an online player with multiplayer settings enabled.
         /// </summary>
         /// <param name="__instance">The Farmer instance provided by Harmony.</param>
         /// <param name="texture">The texture of the shirt to be displayed.</param>
@@ -92,69 +92,102 @@ namespace SimplyShirtless
                 if (Game1.hasLoadedGame && !__instance.IsLocalPlayer &&
                     (!Game1.IsMultiplayer || !IsMultiplayerEnabled() || __instance.IsLocalPlayer)) return;
             
-                texture = NewBlankTexture(256, 8);
-                spriteIndex = 0;
+                texture = __instance.IsMale ? NewBlankTexture(256, 8) : FarmerRenderer.shirtsTexture;
+                spriteIndex = __instance.IsMale ? 0 : 299;
             }
             catch (Exception ex)
             {
-                _monitor.Log($"Failed in {nameof(GetDisplayShirt_Postfix)} while replacing the shirt texture: Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
+                _monitor.Log($"Failed in {nameof(GetDisplayShirt_Postfix)} while replacing the shirt texture: " +
+                             $"Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
             }
+        }
+        
+        public static void GetShirtColor_Postfix(ref Color __result, Farmer __instance)
+        {
+            try
+            {
+                if (!IsModEnabled() || __instance.IsMale) return;
+                
+                if (__instance.shirtItem.Value == null)
+                    __result = HexToColor(GetShirtColor());
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"Failed in {nameof(GetDisplayShirt_Postfix)} while coloring the shirt: " +
+                             $"Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
+            }
+        }
+
+        private static Color HexToColor(string hex)
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length != 6) return Color.White;
+            
+            return new Color(
+                Convert.ToInt32(hex.Substring(0, 2), 16),
+                Convert.ToInt32(hex.Substring(2, 2), 16),
+                Convert.ToInt32(hex.Substring(4, 2), 16),
+                255
+            );
         }
         
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
             if (!IsModEnabled()) return;
-            var isTargetHairy = IsAssetTarget(e, _patchedAssets["hairy"]);
-            var isTargetBald = IsAssetTarget(e, _patchedAssets["bald"]);
-
-            if (isTargetHairy)
-                e.LoadFromModFile<Texture2D>(GetModdedTorso(), AssetLoadPriority.Medium);
-            if (isTargetBald)
-                e.LoadFromModFile<Texture2D>(GetModdedTorso(isBald: true), AssetLoadPriority.Medium);
+            foreach (var (id, asset) in _patchedAssets)
+            {
+                if (IsAssetTarget(e, asset))
+                {
+                    e.LoadFromModFile<Texture2D>(GetModdedTorso(id), AssetLoadPriority.Medium);
+                }
+            }
         }
         
         /// <summary>
         /// Retrieves the path for the modded torso image based on the chosen single player sprite option and
         /// multiplayer option.
         /// </summary>
-        /// <param name="isBald">Specifies whether the required sprite should be bald.</param>
-        /// <param name="forMultiplayer">Specifies whether the required sprite is for multiplayer.</param>
+        /// <param name="key">The index of the patched asset to be modded in _patchedAssets.</param>
         /// <returns>
         /// Returns the file path for the torso image corresponding to the selected sprite option.
         /// Defaults to the Toned sprite if the chosen sprite option is unavailable.
         /// </returns>
-        private string GetModdedTorso(bool isBald = false, bool forMultiplayer = false)
+        private string GetModdedTorso(string key)
         {
-            var bald = isBald ? "_bald" : "";
-            var torsoOption =
-                GetTorsoOption(forMultiplayer ? _config.MultiplayerSprite : _config.Sprite, bald);
+            var bald = key.Contains("bald") ? "_bald" : "";
+            var sex = key.Contains("girl") ? "female" : "male";
+            
+            var torsoOption = GetTorsoOption(_config.TextureOption, bald, sex);
             if (torsoOption != null) return torsoOption;
             
             _monitor.Log("Chosen Sprite option not available. Defaulting to Toned.", LogLevel.Warn);
-            return GetTorsoOption(1, bald);
+            return GetTorsoOption(1, bald, sex);
         }
         
         /// <summary>
-        /// Retrieves the torso option based on the specified sprite index and bald setting.
+        /// Retrieves the torso option based on the specified sprite index, bald setting and farmer sex.
         /// </summary>
         /// <param name="spriteIndex">The index representing the chosen torso sprite.</param>
         /// <param name="bald">Specifies whether the required sprite should be bald.</param>
+        /// <param name="sex">Specifies a male or female sprite.</param>
         /// <returns>
         /// Returns the file path for the torso image corresponding to the selected sprite index and bald setting.
         /// Returns null if the chosen sprite index is unavailable.
         /// </returns>
-        private static string GetTorsoOption(int spriteIndex, string bald)
+        private static string GetTorsoOption(int spriteIndex, string bald, string sex)
         {
             return (TorsoSprite)spriteIndex switch
             {
-                TorsoSprite.Flat => $"assets/male/flat{bald}.png",
-                TorsoSprite.Toned => $"assets/male/toned{bald}.png",
+                TorsoSprite.Flat => $"assets/{sex}/flat{bald}.png",
+                TorsoSprite.Toned => $"assets/{sex}/toned{bald}.png",
                 _ => null
             };
         }
+        
         /// <summary>
-        /// Ensures that when multiplayer is disabled and an online player has no shirt, they are forced to have a shirt with sleeves.
-        /// This allows the local player to remain without sleeves, while online players are still forced to have sleeves when shirtless.
+        /// Ensures that when multiplayer is disabled and an online player has no shirt, they are forced to have a shirt
+        /// with sleeves. This allows the local player to remain without sleeves, while online players are still forced
+        /// to have sleeves when shirtless.
         /// </summary>
         /// <param name="farmer">The Farmer instance to check the conditions for.</param>
         /// <returns><c>true</c> if the farmer should be forced to have sleeves; otherwise, <c>false</c>.</returns>
@@ -178,7 +211,18 @@ namespace SimplyShirtless
         
         private static bool IsMultiplayerEnabled()
         {
-            return _helper.ReadConfig<ModConfig>().Multiplayer;
+            return _helper.ReadConfig<ModConfig>().MultiplayerToggle;
+        }
+        
+        private static string GetShirtColor()
+        {
+            return _helper.ReadConfig<ModConfig>().ShirtColor;
+        }
+
+        public void ValidateShirtColor()
+        {
+            if (GetShirtColor().TrimStart('#').Length == 6) return;
+            _monitor.Log("Chosen shirt color not available, make sure your code contains 6 digits. Defaulting to white.", LogLevel.Warn);
         }
 
         /// <summary>

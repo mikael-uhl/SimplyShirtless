@@ -18,12 +18,17 @@ namespace SimplyShirtless
             harmony.Patch
             (
                 original: AccessTools.Method(typeof(Farmer), nameof(Farmer.ShirtHasSleeves)),
-                prefix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.ShirtHasSleeves_Prefix))
+                postfix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.ShirtHasSleeves_Postfix))
             );
             harmony.Patch
             (
                 original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetDisplayShirt)),
                 postfix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.GetDisplayShirt_Postfix))
+            );
+            harmony.Patch
+            (
+                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetShirtColor)),
+                postfix: new HarmonyMethod(typeof(SimplyShirtless), nameof(SimplyShirtless.GetShirtColor_Postfix))
             );
         }
     }

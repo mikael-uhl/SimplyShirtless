@@ -4,8 +4,9 @@ namespace SimplyShirtless.frameworks
     {
         public bool ModToggle { get; set; } = true;
         public bool FemaleToggle { get; set; } = true;
-        public int Sprite { get; set; } = 1;
-        public bool Multiplayer { get; set; } = true;
-        public int MultiplayerSprite { get; set; } = 1;
+        public int TextureOption { get; set; } = 1;
+        public bool MultiplayerToggle { get; set; } = true;
+        public int MultiplayerTexture { get; set; } = 1;
+        public string ShirtColor { get; set; } = "#ffffff";
     }
 }

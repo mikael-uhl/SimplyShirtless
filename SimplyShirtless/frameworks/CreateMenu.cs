@@ -65,10 +65,19 @@ namespace SimplyShirtless.frameworks
                 mod: _modManifest,
                 name: () => I18n.TitleSprite(),
                 tooltip: () => I18n.TooltipSprite(),
-                getValue: () => _config.Sprite.ToString(),
-                setValue: value => _config.Sprite = int.Parse(value),
+                getValue: () => _config.TextureOption.ToString(),
+                setValue: value => _config.TextureOption = int.Parse(value),
                 allowedValues: new[] { "0", "1" },
                 formatAllowedValue: value => FormatAllowedValues(value)
+            );
+            
+            configMenuApi.AddTextOption
+            (
+                mod: _modManifest,
+                name: () => I18n.TitleFemaleColor(),
+                tooltip: () => I18n.TooltipFemaleColor(),
+                getValue: () => _config.ShirtColor,
+                setValue: value => _config.ShirtColor = value
             );
             
             configMenuApi.AddBoolOption
@@ -76,8 +85,8 @@ namespace SimplyShirtless.frameworks
                 mod: _modManifest,
                 name: () => I18n.TitleMultiplayer(),
                 tooltip: () => I18n.TooltipMultiplayer(),
-                getValue: () => _config.Multiplayer,
-                setValue: value => _config.Multiplayer = value
+                getValue: () => _config.MultiplayerToggle,
+                setValue: value => _config.MultiplayerToggle = value
             );
             
             configMenuApi.AddTextOption
@@ -85,8 +94,8 @@ namespace SimplyShirtless.frameworks
                 mod: _modManifest,
                 name: () => I18n.TitleMultiplayerSprite(),
                 tooltip: () => I18n.TooltipMultiplayerSprite(),
-                getValue: () => _config.MultiplayerSprite.ToString(),
-                setValue: value => _config.MultiplayerSprite = int.Parse(value),
+                getValue: () => _config.MultiplayerTexture.ToString(),
+                setValue: value => _config.MultiplayerTexture = int.Parse(value),
                 allowedValues: new[] { "0", "1" },
                 formatAllowedValue: value => FormatAllowedValues(value)
             );
@@ -96,6 +105,7 @@ namespace SimplyShirtless.frameworks
         {
             _helper.WriteConfig(_config);
             _simplyShirtless.InvalidateAssets();
+            _simplyShirtless.ValidateShirtColor();
         }
 
         private static string FormatAllowedValues(string value)

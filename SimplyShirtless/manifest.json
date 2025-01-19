@@ -5,7 +5,7 @@
   "Description": "Removes the fallback shirt.",
   "UniqueID": "JhonnieMike.SimplyShirtless",
   "EntryDll": "SimplyShirtless.dll",
-  "MinimumApiVersion": "3.18.3",
+  "MinimumApiVersion": "4.1.10",
   "UpdateKeys": [
     "Nexus: 19282"
   ],
