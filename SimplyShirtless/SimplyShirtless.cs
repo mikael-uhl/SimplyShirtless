@@ -16,6 +16,8 @@ namespace SimplyShirtless
         private static IModHelper _helper;
         private static IMonitor _monitor;
         private readonly ModConfig _config;
+        private static readonly Texture2D blankShirt = NewBlankTexture(256, 8);
+        private static Color bikiniColor;
         private enum TorsoSprite
         {
             Flat,
@@ -92,7 +94,7 @@ namespace SimplyShirtless
                 if (Game1.hasLoadedGame && !__instance.IsLocalPlayer &&
                     (!Game1.IsMultiplayer || !IsMultiplayerEnabled() || __instance.IsLocalPlayer)) return;
             
-                texture = __instance.IsMale ? NewBlankTexture(256, 8) : FarmerRenderer.shirtsTexture;
+                texture = __instance.IsMale ? blankShirt : FarmerRenderer.shirtsTexture;
                 spriteIndex = __instance.IsMale ? 0 : 299;
             }
             catch (Exception ex)
@@ -107,9 +109,9 @@ namespace SimplyShirtless
             try
             {
                 if (!IsModEnabled() || __instance.IsMale) return;
-                
+
                 if (__instance.shirtItem.Value == null)
-                    __result = HexToColor(GetShirtColor());
+                    __result = bikiniColor;
             }
             catch (Exception ex)
             {
@@ -118,12 +120,11 @@ namespace SimplyShirtless
             }
         }
 
-        private static Color HexToColor(string hex)
+        public static void ConvertBikiniColor(string hex)
         {
             hex = hex.TrimStart('#');
-            if (hex.Length != 6) return Color.White;
-            
-            return new Color(
+            if (hex.Length != 6) bikiniColor = Color.White;
+            else bikiniColor = new Color(
                 Convert.ToInt32(hex.Substring(0, 2), 16),
                 Convert.ToInt32(hex.Substring(2, 2), 16),
                 Convert.ToInt32(hex.Substring(4, 2), 16),
@@ -214,14 +215,14 @@ namespace SimplyShirtless
             return _helper.ReadConfig<ModConfig>().MultiplayerToggle;
         }
         
-        private static string GetShirtColor()
+        private static string GetBikiniColor()
         {
-            return _helper.ReadConfig<ModConfig>().ShirtColor;
+            return _helper.ReadConfig<ModConfig>().BikiniColor;
         }
 
-        public void ValidateShirtColor()
+        public void ValidateBikiniColor()
         {
-            if (GetShirtColor().TrimStart('#').Length == 6) return;
+            if (GetBikiniColor().TrimStart('#').Length == 6) return;
             _monitor.Log("Chosen shirt color not available, make sure your code contains 6 digits. Defaulting to white.", LogLevel.Warn);
         }
 

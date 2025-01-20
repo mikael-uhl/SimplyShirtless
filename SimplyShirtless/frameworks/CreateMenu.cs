@@ -74,10 +74,10 @@ namespace SimplyShirtless.frameworks
             configMenuApi.AddTextOption
             (
                 mod: _modManifest,
-                name: () => I18n.TitleFemaleColor(),
-                tooltip: () => I18n.TooltipFemaleColor(),
-                getValue: () => _config.ShirtColor,
-                setValue: value => _config.ShirtColor = value
+                name: () => I18n.TitleBikiniColor(),
+                tooltip: () => I18n.TooltipBikiniColor(),
+                getValue: () => _config.BikiniColor,
+                setValue: value => _config.BikiniColor = value
             );
             
             configMenuApi.AddBoolOption
@@ -105,7 +105,8 @@ namespace SimplyShirtless.frameworks
         {
             _helper.WriteConfig(_config);
             _simplyShirtless.InvalidateAssets();
-            _simplyShirtless.ValidateShirtColor();
+            _simplyShirtless.ValidateBikiniColor();
+            SimplyShirtless.ConvertBikiniColor(_config.BikiniColor);
         }
 
         private static string FormatAllowedValues(string value)

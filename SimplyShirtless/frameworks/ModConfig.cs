@@ -7,6 +7,6 @@ namespace SimplyShirtless.frameworks
         public int TextureOption { get; set; } = 1;
         public bool MultiplayerToggle { get; set; } = true;
         public int MultiplayerTexture { get; set; } = 1;
-        public string ShirtColor { get; set; } = "#ffffff";
+        public string BikiniColor { get; set; } = "#ffffff";
     }
 }
