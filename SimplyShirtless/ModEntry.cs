@@ -1,4 +1,5 @@
 using HarmonyLib;
+using SimplyShirtless.extensibility;
 using SimplyShirtless.frameworks;
 using StardewModdingAPI;
 using StardewValley;
@@ -12,8 +13,11 @@ namespace SimplyShirtless
         {
             _config = Helper.ReadConfig<ModConfig>();
             I18n.Init(helper.Translation);
+            //var shirtToken = new CurrentShirtToken();
             var simplyShirtless = new SimplyShirtless(helper, Monitor, _config);
+            _ = new extensibility.ContentPatcher(helper, ModManifest, Monitor, simplyShirtless);
             _ = new CreateMenu(helper, ModManifest, Monitor, simplyShirtless, _config);
+            
             var harmony = new Harmony(ModManifest.UniqueID);
             harmony.Patch
             (

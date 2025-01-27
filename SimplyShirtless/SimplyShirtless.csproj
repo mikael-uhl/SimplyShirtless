@@ -10,4 +10,26 @@
       <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Reference Include="ContentPatcher" HintPath="$(GameModsPath)\ContentPatcher\ContentPatcher.dll" Private="False" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="manual\**" />
+      <Compile Remove="extensibility\CurrentShirtToken1.cs" />
+      <Compile Remove="patches\Harmony.cs" />
+      <Compile Remove="patches\**" />
+      <Compile Remove="HarmonyPatches.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="manual\**" />
+      <EmbeddedResource Remove="patches\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="manual\**" />
+      <None Remove="patches\**" />
+    </ItemGroup>
+
 </Project>

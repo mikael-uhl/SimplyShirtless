@@ -1,21 +1,29 @@
 {
   //GMCM
   "disabled-gmcm": "GenericModConfigMenu not installed, skipping menu registry.",
+  "disabled-cp": "ContentPatcher not installed, skipping token extensibility.",
+  
   "title-simply-shirtless": "Enable Simply Shirtless",
   "tooltip-simply-shirtless": "Removes the male undershirt.",
+  
   "title-sprite": "Torso Texture",
   "tooltip-sprite": "Allows you to choose your torso texture.",
+  "flat": "Flat",
+  "toned": "Toned",
+  "sculpted": "Sculpted",
+  "debug": "Compatibility",
+  
   "title-multiplayer": "Enable Multiplayer",
   "tooltip-multiplayer": "Enables online shirtless players.",
+  
   "title-multiplayer-sprite": "Multiplayer Texture (WIP)",
   "tooltip-multiplayer-sprite": "Choose texture for multiplayer farmers. (Not implemented yet! This option does nothing.)",
+  
   "title-female-sprite": "Enable Shirtless Female",
   "tooltip-female-sprite": "Replaces the female undershirt with the Island Bikini.",
   "title-bikini-color": "Girl bikini color (HEX)",
   "tooltip-bikini-color": "The color for the Island Bikini top piece in HEX format (always opaque).",
-  "flat": "Flat",
-  "toned": "Toned",
-  "sculpted": "Sculpted",
   
-  "invalidation-note": "Assets being invalidated twice is expected and part of how the mod works.\nThere's also a chance you'll see an asset being invalidated and a very similarly named asset\nfailing to invalidate right after.\nIf you've found this through a log or other means, no need to point this as an error at first sight."
+  "invalidation-note": "Assets being invalidated twice is expected and part of how the mod works.\nThere's also a chance you'll see an asset being invalidated and a very similarly named asset\nfailing to invalidate right after.\nIf you've found this through a log or other means, no need to point this as an error at first sight.",
+  "color-error": "Chosen shirt color not available, make sure your code contains 6 digits. Defaulting to white."
 }

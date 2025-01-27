@@ -6,6 +6,7 @@ using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using SimplyShirtless.extensibility;
 using SimplyShirtless.frameworks;
 
 namespace SimplyShirtless
@@ -18,11 +19,12 @@ namespace SimplyShirtless
         private readonly ModConfig _config;
         private static readonly Texture2D blankShirt = NewBlankTexture(256, 8);
         private static Color bikiniColor;
+        //private static CurrentShirtToken _shirtToken;
         private enum TorsoSprite
         {
             Flat,
             Toned,
-            //Sculpted,
+            Debug,
         }
 
         private readonly Dictionary<string, string> _patchedAssets = new()
@@ -38,9 +40,26 @@ namespace SimplyShirtless
             _helper = helper;
             _monitor = monitor;
             _config = config;
-
+            //_shirtToken = shirtToken;
+            
             helper.Events.Content.AssetRequested += ReplaceTorso;
             helper.Events.GameLoop.SaveLoaded += InvalidateAssets;
+        }
+        
+        public static void GetShirtColor_Postfix(ref Color __result, Farmer __instance)
+        {
+            try
+            {
+                if (!IsModEnabled() || __instance.IsMale) return;
+
+                if (__instance.shirtItem.Value == null)
+                    __result = bikiniColor;
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"Failed in {nameof(GetDisplayShirt_Postfix)} while coloring the shirt: " +
+                             $"Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
+            }
         }
 
         /// <summary>
@@ -58,9 +77,15 @@ namespace SimplyShirtless
             try
             {
                 if (!IsModEnabled()) return;
+                // if (ShouldDisableShirt())
+                // {
+                //     __result = false;
+                //     return;
+                // }
                 if (ShouldForceSleeves(__instance))
                 {
                     __result = true;
+                    return;
                 }
 
                 var id = __instance.IsOverridingShirt(out var overrideId)
@@ -75,6 +100,10 @@ namespace SimplyShirtless
                              $"Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
             }
         }
+        
+        //TODO: add support for Content Packs that replaces the body texture, allowing for easy custom textures
+        //maybe add a "Compatibility Mode" that enables an extra texture free of asset replacements
+        //alternatively, simply disable the replacements when this mode is active without an extra texture option
 
         /// <summary>
         /// Postfix method that either overrides the fallback shirt texture with a blank asset (male),
@@ -104,42 +133,17 @@ namespace SimplyShirtless
             }
         }
         
-        public static void GetShirtColor_Postfix(ref Color __result, Farmer __instance)
-        {
-            try
-            {
-                if (!IsModEnabled() || __instance.IsMale) return;
-
-                if (__instance.shirtItem.Value == null)
-                    __result = bikiniColor;
-            }
-            catch (Exception ex)
-            {
-                _monitor.Log($"Failed in {nameof(GetDisplayShirt_Postfix)} while coloring the shirt: " +
-                             $"Please report at nexusmods.com/stardewvalley/mods/19282?tab=posts:\n{ex}", LogLevel.Error);
-            }
-        }
-
-        public static void ConvertBikiniColor(string hex)
-        {
-            hex = hex.TrimStart('#');
-            if (hex.Length != 6) bikiniColor = Color.White;
-            else bikiniColor = new Color(
-                Convert.ToInt32(hex.Substring(0, 2), 16),
-                Convert.ToInt32(hex.Substring(2, 2), 16),
-                Convert.ToInt32(hex.Substring(4, 2), 16),
-                255
-            );
-        }
-        
         private void ReplaceTorso(object sender, AssetRequestedEventArgs e)
         {
             if (!IsModEnabled()) return;
+            //_monitor.Log($"TextureOption: {_config.TextureOption}", LogLevel.Error);
+            if (_config.TextureOption == 2) return;
+            //TODO: fix mod always overriding all the asset options regardless of current farmer
             foreach (var (id, asset) in _patchedAssets)
             {
                 if (IsAssetTarget(e, asset))
                 {
-                    e.LoadFromModFile<Texture2D>(GetModdedTorso(id), AssetLoadPriority.Medium);
+                    e.LoadFromModFile<Texture2D>(GetModdedTorso(id), AssetLoadPriority.High + 5);
                 }
             }
         }
@@ -220,11 +224,10 @@ namespace SimplyShirtless
             return _helper.ReadConfig<ModConfig>().BikiniColor;
         }
 
-        public void ValidateBikiniColor()
-        {
-            if (GetBikiniColor().TrimStart('#').Length == 6) return;
-            _monitor.Log("Chosen shirt color not available, make sure your code contains 6 digits. Defaulting to white.", LogLevel.Warn);
-        }
+        // private static bool ShouldDisableShirt()
+        // {
+        //     return _shirtToken.Disable;
+        // }
 
         /// <summary>
         /// Generates a blank Texture2D of specified width and height with transparent pixels.
@@ -239,6 +242,22 @@ namespace SimplyShirtless
             Array.Fill(data, Color.Transparent);
             blankTexture.SetData(data);
             return blankTexture;
+        }
+        
+        public static void ConvertBikiniColor(string hex)
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length != 6)
+            {
+                bikiniColor = Color.White;
+                _monitor.Log(I18n.ColorError(), LogLevel.Warn);
+            }
+            else bikiniColor = new Color(
+                Convert.ToInt32(hex.Substring(0, 2), 16),
+                Convert.ToInt32(hex.Substring(2, 2), 16),
+                Convert.ToInt32(hex.Substring(4, 2), 16),
+                255
+            );
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 {
   "Name": "Simply Shirtless",
   "Author": "JhonnieRandler & Brukob",
-  "Version": "0.1.0",
+  "Version": "0.2.0",
   "Description": "Removes the fallback shirt.",
   "UniqueID": "JhonnieMike.SimplyShirtless",
   "EntryDll": "SimplyShirtless.dll",
@@ -12,6 +12,10 @@
   "Dependencies": [
     {
       "UniqueID": "spacechase0.GenericModConfigMenu",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "Pathoschild.ContentPatcher",
       "IsRequired": false
     }
   ]

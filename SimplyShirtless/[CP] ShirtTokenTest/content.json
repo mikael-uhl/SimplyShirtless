@@ -1,0 +1,21 @@
+{
+  "Format": "1.24.0",
+
+  "ConfigSchema": {
+    "Palmirinha": {
+      "AllowValues": "true, false",
+      "Default": "true"
+    }
+  },
+
+  "Changes": [
+    //Palmirinha
+    {
+      "Action": "EditData",
+      "Target": "Strings/StringsFromCSFiles",
+      "Entries": {
+        "TV.cs.13114": "{{JhonnieMike.SimplyShirtless/CurrentShirt}}"
+      }
+    }
+  ]
+}

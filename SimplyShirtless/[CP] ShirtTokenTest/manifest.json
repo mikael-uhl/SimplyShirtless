@@ -1,0 +1,21 @@
+{
+  "Name": "Shirt Token Test",
+  "Author": "Brukob",
+  "Version": "1.1.0",
+  "Description": "test",
+  "UniqueID": "JhonnieMike.BrasilTV",
+  "MinimumApiVersion": "3.13.2",
+  "UpdateKeys": [
+    "Nexus: 10843"
+  ],
+  "ContentPackFor": {
+    "UniqueID": "Pathoschild.ContentPatcher",
+    "MinimumVersion": "1.24.5"
+  },
+  "Dependencies": [
+    {
+      "UniqueID": "JhonnieMike.SimplyShirtless",
+      "IsRequired": true
+    }
+  ]
+}

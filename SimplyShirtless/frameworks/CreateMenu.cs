@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -67,7 +66,7 @@ namespace SimplyShirtless.frameworks
                 tooltip: () => I18n.TooltipSprite(),
                 getValue: () => _config.TextureOption.ToString(),
                 setValue: value => _config.TextureOption = int.Parse(value),
-                allowedValues: new[] { "0", "1" },
+                allowedValues: new[] { "0", "1", "2" },
                 formatAllowedValue: value => FormatAllowedValues(value)
             );
             
@@ -105,7 +104,6 @@ namespace SimplyShirtless.frameworks
         {
             _helper.WriteConfig(_config);
             _simplyShirtless.InvalidateAssets();
-            _simplyShirtless.ValidateBikiniColor();
             SimplyShirtless.ConvertBikiniColor(_config.BikiniColor);
         }
 
@@ -114,7 +112,7 @@ namespace SimplyShirtless.frameworks
             return value switch {
                 "0" => I18n.Flat(),
                 "1" => I18n.Toned(),
-                //"2" => I18n.Sculpted(),
+                "2" => I18n.Debug(),
                 _ => value
             };
         }

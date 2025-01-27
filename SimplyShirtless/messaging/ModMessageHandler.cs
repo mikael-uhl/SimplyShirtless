@@ -13,7 +13,7 @@ namespace SimplyShirtless.messaging
             _helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
         }
 
-        public void SendConfig<T>(T config)
+        public void SendConfig<TModConfig>(TModConfig config)
         {
             _helper.Multiplayer.SendMessage(
                 config,
